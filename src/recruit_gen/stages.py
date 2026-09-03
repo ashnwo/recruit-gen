@@ -1,5 +1,7 @@
 from recruit_gen.models import Recruit, PhysicalsConfig
+from pydantic import ValidationError
 import numpy as np
+import yaml
 
 def class_shape(count: int, rng) -> list[dict]:
     return [{} for _ in range(count)]   # stub: N blank recruits
@@ -14,8 +16,27 @@ def positions(recruits: list[dict], rng) -> list[dict]:
         r["position"] = "PG"   # stub: everyone's a point guard for now
     return recruits
 
+
+
+def load_physicals_config(path):
+    with open(path) as f:
+        raw_yaml = f.read()
+    
+    data = yaml.safe_load(raw_yaml) 
+
+    try:
+        return PhysicalsConfig(**data)
+    
+    except ValidationError as e:
+        print(f"Bad config in {path}:\n{e}")
+        raise SystemExit(1)
+    
+    # return PhysicalsConfig(**data)  
+
+
 def physicals(recruits: list[dict], rng, config: PhysicalsConfig) -> list[Recruit]:
     recruits_out = []
+
 
     for r in recruits:
         height = rng.normal(loc=config.loc, scale=config.scale)
