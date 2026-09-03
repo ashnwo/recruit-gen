@@ -1,4 +1,5 @@
-from recruit_gen.models import Recruit
+from recruit_gen.models import Recruit, PhysicalsConfig
+import numpy as np
 
 def class_shape(count: int, rng) -> list[dict]:
     return [{} for _ in range(count)]   # stub: N blank recruits
@@ -13,11 +14,15 @@ def positions(recruits: list[dict], rng) -> list[dict]:
         r["position"] = "PG"   # stub: everyone's a point guard for now
     return recruits
 
-def physicals(recruits: list[dict], rng) -> list[Recruit]:
+def physicals(recruits: list[dict], rng, config: PhysicalsConfig) -> list[Recruit]:
     recruits_out = []
+
     for r in recruits:
+        height = rng.normal(loc=config.loc, scale=config.scale)
+        height = round(height)
+        
         recruit = Recruit(
-            height = 79,
+            height = height,
             weight = 190
         )
         recruits_out.append(recruit)
