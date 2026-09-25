@@ -1,7 +1,8 @@
 from recruit_gen.models import Recruit, PhysicalsConfig
-from pydantic import ValidationError
+from pydantic import ValidationError, TypeAdapter
 import numpy as np
 import yaml
+
 
 def class_shape(count: int, rng) -> list[dict]:
     return [{} for _ in range(count)]   # stub: N blank recruits
@@ -25,7 +26,8 @@ def load_physicals_config(path):
     data = yaml.safe_load(raw_yaml) 
 
     try:
-        return PhysicalsConfig(**data)
+        adapter = TypeAdapter(PhysicalsConfig)   # wrap the decision
+        return adapter.validate_python(data)            # run it on your dict
     
     except ValidationError as e:
         print(f"Bad config in {path}:\n{e}")
@@ -70,5 +72,6 @@ def validate_dedup(recruits: int, rng) -> list[dict]:
     for r in recruits:
         r["validate_dedup"] = ""   # stub
     return recruits
+
 
 
