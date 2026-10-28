@@ -1,6 +1,18 @@
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, TypeAdapter, model_validator
+from pydantic import BaseModel, Field, TypeAdapter, field_validator, model_validator
+
+Ethnicity = Literal["Black", "White", "Hispanic", "Asian", "Polynesian"]
+ETHNICITIES: tuple[str, ...] = Ethnicity.__args__
+Weight = Annotated[float, Field(gt=0)]          # a relative weight: any positive number
+Share = Annotated[float, Field(ge=0, le=1)]     # a fraction from 0 to 1
+
+
+def check_adds_to_one(mix: dict, what: str) -> dict:
+    total = sum(mix.values())
+    if abs(total - 1.0) > 0.01:
+        raise ValueError(f"{what} adds up to {total:.3f}; it must add up to 1")
+    return mix
 
 
 class Recruit(BaseModel):
@@ -14,7 +26,11 @@ class Recruit(BaseModel):
     height: int = Field(ge=60, le=96)    # inches; outside 5'0"-8'0" = something broke
     height_ft: str                       # same height written like 6'5"
     weight: int = Field(ge=100, le=400)  # lbs; outside this = something broke
-    origin: str
+    ethnicity: Ethnicity
+    hometown: str                        # "Atlanta, GA" or "Lagos, Nigeria"
+    origin: str                          # state code (GA) or country code (NGA)
+    state_rank: int = Field(ge=1)        # rank among this class's players from the same state/country
+    high_school: str
     development: str
     name: str
     true_rank: int = Field(ge=1)         # where his REAL talent would rank him (hidden from scouts)
@@ -64,6 +80,69 @@ class PositionConfig(BaseModel):
     share: float = Field(gt=0, le=1)
     height: PhysicalsConfig
     weight: WeightParams
+    ethnicity: dict[Ethnicity, Share]    # mix for US-born players at this position
+
+    @field_validator("ethnicity")
+    @classmethod
+    def ethnicity_adds_to_one(cls, mix):
+        return check_adds_to_one(mix, "ethnicity mix")
+
+
+# ---- places (Piece 4): configs/shared/places.yaml -------------------------------
+class StateInfo(BaseModel):
+    name: str
+    cities: dict[str, Weight] = Field(min_length=1)
+    eth_mult: dict[Ethnicity, Annotated[float, Field(ge=0)]] = {}   # nudges the ethnicity odds
+
+
+class CountryInfo(BaseModel):
+    name: str
+    cities: dict[str, Weight] = Field(min_length=1)
+    ethnicity: dict[Ethnicity, Share]
+
+    @field_validator("ethnicity")
+    @classmethod
+    def ethnicity_adds_to_one(cls, mix):
+        return check_adds_to_one(mix, "country ethnicity mix")
+
+
+class SchoolPattern(BaseModel):
+    text: str
+    weight: Weight
+
+
+class SchoolNames(BaseModel):
+    patterns: list[SchoolPattern] = Field(min_length=1)
+    international: str
+    directions: list[str] = Field(min_length=1)
+    namesakes: list[str] = Field(min_length=1)
+    saints: list[str] = Field(min_length=1)
+
+
+class PlacesData(BaseModel):
+    states: dict[str, StateInfo] = Field(min_length=1)
+    countries: dict[str, CountryInfo] = {}
+    schools: SchoolNames
+
+
+# ---- where a sport's players come from (Piece 4) ---------------------------------
+class OriginsConfig(BaseModel):
+    international_rate: Share
+    states: dict[str, Weight] = Field(min_length=1)
+    countries: dict[str, Weight] = {}
+
+    @model_validator(mode="after")
+    def countries_if_international(self):
+        if self.international_rate > 0 and not self.countries:
+            raise ValueError("international_rate is above 0 but no countries are listed")
+        return self
+
+
+class PrepConfig(BaseModel):
+    rate: Share
+    star_boost: dict[int, Annotated[float, Field(ge=0)]] = {}
+    international_rate: Share
+    schools: dict[str, Weight] = Field(min_length=1)
 
 
 class StarBand(BaseModel):
@@ -116,6 +195,17 @@ class SportConfig(BaseModel):
     sport: str
     positions: dict[str, PositionConfig] = Field(min_length=1)
     talent: TalentConfig
+    origins: OriginsConfig
+    prep: PrepConfig
+    places: PlacesData                   # filled in from configs/shared/places.yaml by the loader
+
+    @model_validator(mode="after")
+    def origins_exist_in_places(self):
+        missing = [c for c in self.origins.states if c not in self.places.states]
+        missing += [c for c in self.origins.countries if c not in self.places.countries]
+        if missing:
+            raise ValueError(f"origin codes not found in places.yaml: {', '.join(missing)}")
+        return self
 
     @model_validator(mode="after")
     def shares_add_up_to_one(self):

@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from recruit-gen!")
+"""Recruit generator: realistic fictional sports recruits."""

@@ -14,14 +14,20 @@ TALENT = {"population": 1000, "pool_size": 100, "scout_error": 0.3,
           "stars": [{"stars": 4, "last_rank": 10, "rating": [97, 90]},
                     {"stars": 3, "last_rank": 100, "rating": [89, 80]}],
           "verdicts": {"steal": 4, "underrated": 1.75, "overrated": 1.75, "bust": 4, "min_gap": 5}}
+ETH = {"Black": 0.5, "White": 0.5}
+PLACES = {"states": {"ZZ": {"name": "Testland", "cities": {"Testville": 1}}},
+          "schools": {"patterns": [{"text": "{city} High School", "weight": 1}], "international": "{city} Academy",
+                      "directions": ["North"], "namesakes": ["Lincoln"], "saints": ["St. John's"]}}
+ORIGINS = {"international_rate": 0, "states": {"ZZ": 1}}
+PREP = {"rate": 0.1, "international_rate": 0.5, "schools": {"Test Prep": 1}}
 
 
 def tiny_sport(**overrides) -> dict:
     """A small valid sport config to break on purpose in tests."""
     cfg = {"sport": "test", "positions": {
-        "A": {"share": 0.5, "height": NORMAL, "weight": WEIGHT},
-        "B": {"share": 0.5, "height": SKEW, "weight": WEIGHT},
-    }, "talent": TALENT}
+        "A": {"share": 0.5, "height": NORMAL, "weight": WEIGHT, "ethnicity": ETH},
+        "B": {"share": 0.5, "height": SKEW, "weight": WEIGHT, "ethnicity": ETH},
+    }, "talent": TALENT, "origins": ORIGINS, "prep": PREP, "places": PLACES}
     cfg.update(overrides)
     return cfg
 
@@ -108,11 +114,29 @@ def test_broken_yaml_exits_cleanly(tmp_path):
         load_sport_config(f)
 
 
+def write_sport(folder, cfg) -> "Path":
+    """Write a sport config + its shared/places.yaml the way the loader expects."""
+    (folder / "shared").mkdir(exist_ok=True)
+    (folder / "shared" / "places.yaml").write_text(yaml.safe_dump(cfg.pop("places")))
+    f = folder / "test.yaml"
+    f.write_text(yaml.safe_dump(cfg))
+    return f
+
+
+def test_tiny_sport_loads_from_files(tmp_path):
+    assert load_sport_config(write_sport(tmp_path, tiny_sport())).sport == "test"
+
+
 def test_bad_values_exit_cleanly(tmp_path):
-    f = tmp_path / "bad.yaml"
     cfg = tiny_sport()
     cfg["positions"]["A"]["height"] = {**NORMAL, "scale": -2}
-    f.write_text(yaml.safe_dump(cfg))
+    with pytest.raises(SystemExit):
+        load_sport_config(write_sport(tmp_path, cfg))
+
+
+def test_missing_places_file_exits_cleanly(tmp_path):
+    f = write_sport(tmp_path, tiny_sport())
+    (tmp_path / "shared" / "places.yaml").unlink()
     with pytest.raises(SystemExit):
         load_sport_config(f)
 

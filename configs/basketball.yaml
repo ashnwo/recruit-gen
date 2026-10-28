@@ -7,29 +7,36 @@ sport: basketball
 #             "skewnormal" = lopsided bell; a > 0 stretches the tall side
 #   weight  - lbs. A player exactly ref_height tall centers at at_ref lbs,
 #             gains lbs_per_inch for each inch taller, and varies by about sd lbs
+#   ethnicity - mix for US-born players at this position (each state then nudges
+#             it; international players use their country's mix from shared/places.yaml)
 positions:
   PG:
     share: 0.20
     height: {distribution: normal, loc: 74.0, scale: 1.8}        # ~6'2"
     weight: {ref_height: 74.0, at_ref: 180, lbs_per_inch: 5, sd: 10}
+    ethnicity: {Black: 0.82, White: 0.145, Hispanic: 0.02, Asian: 0.01, Polynesian: 0.005}
   SG:
     share: 0.22
     height: {distribution: normal, loc: 76.5, scale: 1.6}        # ~6'4.5"
     weight: {ref_height: 76.5, at_ref: 192, lbs_per_inch: 5, sd: 11}
+    ethnicity: {Black: 0.8, White: 0.17, Hispanic: 0.02, Asian: 0.008, Polynesian: 0.002}
   SF:
     share: 0.22
     height: {distribution: normal, loc: 79.0, scale: 1.5}        # ~6'7"
     weight: {ref_height: 79.0, at_ref: 205, lbs_per_inch: 6, sd: 12}
+    ethnicity: {Black: 0.8, White: 0.17, Hispanic: 0.02, Asian: 0.005, Polynesian: 0.005}
   PF:
     share: 0.20
     height: {distribution: normal, loc: 80.5, scale: 1.4}        # ~6'8.5"
     weight: {ref_height: 80.5, at_ref: 220, lbs_per_inch: 6, sd: 14}
+    ethnicity: {Black: 0.75, White: 0.22, Hispanic: 0.02, Asian: 0.005, Polynesian: 0.005}
   C:
     share: 0.16
     # Centers rarely run short (those become PFs) but a few are giants,
     # so the curve leans tall: middle ~6'11", rare 7'3"+.
     height: {distribution: skewnormal, loc: 81.5, scale: 2.4, a: 3}
     weight: {ref_height: 83.0, at_ref: 235, lbs_per_inch: 7, sd: 16}
+    ethnicity: {Black: 0.66, White: 0.31, Hispanic: 0.02, Asian: 0.005, Polynesian: 0.005}
 
 # Talent and rankings.
 #   population  - senior varsity players nationwide that rankings are drawn from
@@ -59,3 +66,23 @@ talent:
     overrated: 1.75
     bust: 4           # e.g. ranked #50, really #200 or lower
     min_gap: 5
+
+# Where players come from.
+#   international_rate - share of recruits from outside the US
+#   states / countries - relative weights: how many recruits each produces
+#                        (codes must exist in shared/places.yaml)
+origins:
+  international_rate: 0.12
+  states: {CA: 10, TX: 9, GA: 7, FL: 7, NY: 5, NC: 5, IL: 4, MD: 4.5, VA: 4, NJ: 4, PA: 3, OH: 3, MI: 3, IN: 3, TN: 3, AZ: 2, MN: 2, WA: 2, NV: 2, MO: 2, KY: 2, AL: 1.5, LA: 1.5, SC: 1.5, MS: 1.2, WI: 1.2, MA: 1.5, CT: 1, OK: 1, AR: 1, KS: 1, CO: 1, OR: 0.8, UT: 0.8, DC: 1.5, DE: 0.4, IA: 0.6, NE: 0.4, NM: 0.3, WV: 0.3, HI: 0.2, RI: 0.3, ID: 0.2, AK: 0.1, ME: 0.1, NH: 0.2, VT: 0.05, MT: 0.1, ND: 0.1, SD: 0.1, WY: 0.05}
+  countries: {CAN: 0.24, AUS: 0.09, FRA: 0.1, NGA: 0.09, SEN: 0.06, CMR: 0.06, SSD: 0.05, COD: 0.04, MLI: 0.03, SRB: 0.05, LTU: 0.03, ESP: 0.04, DEU: 0.04, GRC: 0.02, TUR: 0.02, GBR: 0.04}
+
+# National prep schools. Some players leave home for one of these; their
+# hometown stays the same, only the school changes.
+#   rate        - base chance for a US player
+#   star_boost  - multiplies that chance by star level (5-stars go to prep far more)
+#   international_rate - chance for an international player
+prep:
+  rate: 0.3
+  star_boost: {5: 2.2, 4: 1.4, 3: 0.8, 2: 0.4}
+  international_rate: 0.55
+  schools: {"IMG Academy (Bradenton, FL)": 3, "Montverde Academy (Montverde, FL)": 3, "Prolific Prep (Napa, CA)": 2, "Link Academy (Branson, MO)": 2, "Oak Hill Academy (Mouth of Wilson, VA)": 2, "Sunrise Christian Academy (Bel Aire, KS)": 2, "Brewster Academy (Wolfeboro, NH)": 2, "AZ Compass Prep (Chandler, AZ)": 2, "Wasatch Academy (Mount Pleasant, UT)": 2, "Dynamic Prep (Irving, TX)": 1, "Columbus High (Miami, FL)": 1, "Long Island Lutheran (Brookville, NY)": 1, "Paul VI (Chantilly, VA)": 1, "DeMatha Catholic (Hyattsville, MD)": 1, "Sierra Canyon (Chatsworth, CA)": 2, "Harvard-Westlake (Los Angeles, CA)": 1, "Perkiomen School (Pennsburg, PA)": 1, "La Lumiere School (La Porte, IN)": 1, "Overtime Elite (Atlanta, GA)": 1, "NBA Academy Africa (Saly, Senegal)": 1}

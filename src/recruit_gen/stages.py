@@ -2,6 +2,8 @@
 enriched. Recruits stay plain dicts the whole way through; the last stage
 (validate_dedup) checks each one against the Recruit contract."""
 
+import bisect
+import itertools
 import math
 from collections import defaultdict
 from pathlib import Path
@@ -11,22 +13,48 @@ import yaml
 from pydantic import ValidationError
 from scipy.stats import norm, skewnorm
 
-from recruit_gen.models import PhysicalsConfig, Recruit, SportConfig, StarBand, TalentConfig
+from recruit_gen.models import (
+    ETHNICITIES, PhysicalsConfig, Recruit, SportConfig, StarBand, TalentConfig,
+)
 
 
-def load_sport_config(path: Path) -> SportConfig:
-    """Read a sport's YAML file into a checked config. Any problem = clear message + stop."""
+def read_yaml(path: Path):
+    """Read a YAML file. Missing or broken file = clear message + stop."""
     try:
         with open(path) as f:
-            data = yaml.safe_load(f)
-        return SportConfig.model_validate(data)
+            return yaml.safe_load(f)
     except FileNotFoundError:
         print(f"Config file not found: {path}")
     except yaml.YAMLError as e:
         print(f"Config file {path} isn't valid YAML:\n{e}")
-    except ValidationError as e:
-        print(f"Bad config in {path}:\n{e}")
     raise SystemExit(1)
+
+
+def load_sport_config(path: Path) -> SportConfig:
+    """Read a sport's YAML file plus the shared places file next to it
+    (shared/places.yaml) into one checked config. Any problem = clear message + stop."""
+    path = Path(path)
+    data = read_yaml(path) or {}
+    places_path = path.parent / "shared" / "places.yaml"
+    data = {**data, "places": read_yaml(places_path)}
+    try:
+        return SportConfig.model_validate(data)
+    except ValidationError as e:
+        print(f"Bad config in {path} (or {places_path}):\n{e}")
+    raise SystemExit(1)
+
+
+class WeightedPicker:
+    """Fast repeated weighted draws from {option: weight}. Weights don't need to add to 1."""
+
+    def __init__(self, weights: dict):
+        items = [(k, w) for k, w in weights.items() if w > 0]
+        self.keys = [k for k, _ in items]
+        self.cum = list(itertools.accumulate(w for _, w in items))
+
+    def pick(self, rng):
+        x = rng.random() * self.cum[-1]
+        return self.keys[min(bisect.bisect_right(self.cum, x), len(self.keys) - 1)]
 
 
 def class_shape(count: int, rng, config: SportConfig, top: bool = False) -> list[dict]:
@@ -50,9 +78,28 @@ def class_shape(count: int, rng, config: SportConfig, top: bool = False) -> list
     return [{"rank": int(r), "scout_z": float(norm.isf((r - 0.5) / t.population))} for r in ranks]
 
 
-def origins(recruits: list[dict], rng) -> list[dict]:
+def origins(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
+    """Where each player is from: international or not, then the state/country
+    (weighted by how many recruits it produces), then a hometown in it."""
+    o, places = config.origins, config.places
+    state_picker = WeightedPicker(o.states)
+    country_picker = WeightedPicker(o.countries) if o.countries else None
+    city_pickers: dict[str, WeightedPicker] = {}
     for r in recruits:
-        r["origin"] = "USA"   # stub (Piece 4)
+        international = country_picker is not None and rng.random() < o.international_rate
+        if international:
+            code = country_picker.pick(rng)
+            info = places.countries[code]
+        else:
+            code = state_picker.pick(rng)
+            info = places.states[code]
+        if code not in city_pickers:
+            city_pickers[code] = WeightedPicker(info.cities)
+        city = city_pickers[code].pick(rng)
+        r["origin"] = code
+        r["international"] = international   # working value, not in the CSV
+        r["city"] = city                     # working value, not in the CSV
+        r["hometown"] = f"{city}, {info.name}" if international else f"{city}, {code}"
     return recruits
 
 
@@ -169,6 +216,62 @@ def talent(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
     return recruits
 
 
+def ethnicity_mix(r: dict, config: SportConfig) -> dict:
+    """US-born: the position's mix, nudged by the state (Hawaii -> far more Polynesian).
+    International: the country's own mix."""
+    places = config.places
+    if r["international"]:
+        return places.countries[r["origin"]].ethnicity
+    pos_mix = config.positions[r["position"]].ethnicity
+    nudge = places.states[r["origin"]].eth_mult
+    return {e: pos_mix.get(e, 0.0) * nudge.get(e, 1.0) for e in ETHNICITIES}
+
+
+def high_school(r: dict, rng, config: SportConfig, prep_picker: WeightedPicker,
+                pattern_picker: WeightedPicker) -> str:
+    """Some players go to a national prep school (5-stars much more often).
+    Everyone else gets a made-up local school built from the name patterns."""
+    prep = config.prep
+    if r["international"]:
+        chance = prep.international_rate
+    else:
+        chance = min(0.9, prep.rate * prep.star_boost.get(r["stars"], 1.0))
+    if rng.random() < chance:
+        return prep_picker.pick(rng)
+    names = config.places.schools
+    if r["international"]:
+        return names.international.format(city=r["city"])
+    return pattern_picker.pick(rng).format(
+        city=r["city"],
+        dir=names.directions[int(rng.integers(len(names.directions)))],
+        name=names.namesakes[int(rng.integers(len(names.namesakes)))],
+        saint=names.saints[int(rng.integers(len(names.saints)))],
+    )
+
+
+def backgrounds(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
+    """Ethnicity (from position + where he's from), high school, and state rank.
+    Runs after talent because prep-school odds depend on stars."""
+    prep_picker = WeightedPicker(config.prep.schools)
+    pattern_picker = WeightedPicker({p.text: p.weight for p in config.places.schools.patterns})
+    eth_pickers: dict[tuple, WeightedPicker] = {}
+    for r in recruits:
+        key = (r["position"], r["origin"], r["international"])
+        if key not in eth_pickers:
+            eth_pickers[key] = WeightedPicker(ethnicity_mix(r, config))
+        r["ethnicity"] = eth_pickers[key].pick(rng)
+        r["high_school"] = high_school(r, rng, config, prep_picker, pattern_picker)
+
+    # State rank: order within each state/country by national rank.
+    by_origin = defaultdict(list)
+    for r in recruits:
+        by_origin[r["origin"]].append(r)
+    for group in by_origin.values():
+        for i, r in enumerate(sorted(group, key=lambda x: x["rank"]), start=1):
+            r["state_rank"] = i
+    return recruits
+
+
 def development(recruits: list[dict], rng) -> list[dict]:
     for r in recruits:
         r["development"] = "star"   # stub (Piece 6)
@@ -184,7 +287,7 @@ def names(recruits: list[dict], rng) -> list[dict]:
 def validate_dedup(recruits: list[dict], rng) -> list[dict]:
     """Last stage: every recruit must pass the Recruit contract.
     model_dump() keeps only the contract's fields, so working values like
-    scout_z drop out here. Duplicate checks and rejects come in Piece 7."""
+    scout_z, city and international drop out here. Duplicate checks and rejects come in Piece 7."""
     checked = []
     for i, r in enumerate(recruits, start=1):
         try:
