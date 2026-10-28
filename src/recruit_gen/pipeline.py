@@ -1,25 +1,43 @@
 import numpy as np
 
+from recruit_gen.checks import ClassResult, finish, validate_dedup
 from recruit_gen.models import SportConfig
+from recruit_gen.names import name_book, name_class
 from recruit_gen.stages import (
     class_shape, origins, positions, archetypes, physicals, development,
-    talent, backgrounds, ratings, names, validate_dedup,
+    talent, backgrounds, ratings, names, rank_within,
 )
+
+# Stages that build one player at a time (the clean-up check reuses these to
+# build a replacement player for a failed rank).
+PLAYER_STAGES = [origins, positions, archetypes, physicals, development, talent, backgrounds, ratings]
+
+
+def build_class(count: int, seed: int, config: SportConfig, top: bool = False,
+                distinctive: str = "normal") -> ClassResult:
+    """Each stage adds to the recruits, in an order where every stage has what it needs.
+    Returns the clean class plus every player the clean-up check rejected."""
+    rng = np.random.default_rng(seed)
+    recruits = class_shape(count, rng, config, top)   # source: who's in the class (by rank)
+    for stage in PLAYER_STAGES:                       # origins -> ... -> ratings
+        recruits = stage(recruits, rng, config)
+    recruits = names(recruits, rng, config, distinctive)   # needs ethnicity + origin
+
+    def rebuild(failed: dict, kept: list[dict]) -> dict:
+        """A brand-new player at the same national rank (same scouted grade)."""
+        new = [{"rank": failed["rank"], "scout_z": failed["scout_z"]}]
+        for stage in PLAYER_STAGES:
+            new = stage(new, rng, config)
+        name_class(new, rng, name_book(config.names, distinctive), config.places, taken=kept)
+        return new[0]
+
+    result = validate_dedup(recruits, config, rebuild)   # clean-up check: last line of defense
+    rank_within(result.recruits, "position", "pos_rank")  # replacements may change these
+    rank_within(result.recruits, "origin", "state_rank")
+    return finish(result)
 
 
 def run_pipeline(count: int, seed: int, config: SportConfig, top: bool = False,
                  distinctive: str = "normal") -> list[dict]:
-    """Each stage adds to the recruits, in an order where every stage has what it needs."""
-    rng = np.random.default_rng(seed)
-    recruits = class_shape(count, rng, config, top)   # source: who's in the class (by rank)
-    recruits = origins(recruits, rng, config)         # state/country + hometown
-    recruits = positions(recruits, rng, config)
-    recruits = archetypes(recruits, rng, config)      # play style (shapes the body) + 2nd position
-    recruits = physicals(recruits, rng, config)       # height, weight, wingspan
-    recruits = development(recruits, rng, config)     # trajectory + growth gap
-    recruits = talent(recruits, rng, config)          # stars, rating, true talent, verdict, position rank
-    recruits = backgrounds(recruits, rng, config)     # ethnicity, high school, state rank
-    recruits = ratings(recruits, rng, config)         # 2K ratings, OVR, potential
-    recruits = names(recruits, rng, config, distinctive)   # needs ethnicity + origin
-    recruits = validate_dedup(recruits, rng)          # contract check: last line of defense
-    return recruits
+    """Just the finished class (see build_class for the rejects too)."""
+    return build_class(count, seed, config, top, distinctive).recruits

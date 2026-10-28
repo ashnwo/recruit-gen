@@ -367,6 +367,23 @@ class ArchetypeConfig(BaseModel):
     shift: dict[Literal["height", "weight", "athletic", "wingspan"], float] = {}
 
 
+# ---- clean-up check (Piece 7) -----------------------------------------------------
+Range = tuple[float, float]
+
+
+class BodyBounds(BaseModel):
+    height: Optional[Range] = None
+    weight: Optional[Range] = None
+
+
+class ChecksConfig(BaseModel):
+    max_reject_share: Share
+    always_allow: int = Field(default=2, ge=0)
+    max_rebuilds: int = Field(ge=0)
+    body: dict[str, BodyBounds] = {}
+    wingspan_vs_height: Optional[Range] = None
+
+
 class SportConfig(BaseModel):
     sport: str
     positions: dict[str, PositionConfig] = Field(min_length=1)
@@ -379,12 +396,15 @@ class SportConfig(BaseModel):
     ratings: Optional[RatingsConfig] = None
     attributes: Optional[AttributesConfig] = None
     archetypes: dict[str, ArchetypeConfig] = {}
+    checks: Optional[ChecksConfig] = None
 
     @model_validator(mode="after")
     def rating_names_line_up(self):
         """Catch typos: every attribute, group, archetype and position named anywhere must exist."""
         problems = []
         known_pos = set(self.positions) | {""}
+        if self.checks is not None:
+            problems += [f"checks body position '{x}'" for x in self.checks.body if x not in self.positions]
         for pos, p in self.positions.items():
             problems += [f"{pos} secondary '{x}'" for x in p.secondary if x not in known_pos]
             problems += [f"{pos} archetype '{x}'" for x in p.archetypes if x not in self.archetypes]

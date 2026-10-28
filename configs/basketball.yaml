@@ -238,4 +238,26 @@ archetypes:
     shift: {height: 0.5, wingspan: 1.5}
   "Stretch Big":
     mods: {"Three-Point Shot": 10, "Mid-Range Shot": 6, "Free Throw": 5, "Post Control": -3, "Offensive Rebound": -3}
-    shift: {weight: -0.5}
+    shift: {weight: -0.3}
+
+# Clean-up check (last stage). Every player must pass the Recruit contract AND these
+# realism rules. A player who fails is written to <class>_rejects.csv with the reason
+# and replaced by a new player at the same national rank.
+#   max_reject_share - if more than this share of the class fails, stop: that means a
+#                      setting is off, and quietly replacing players would hide it
+#   always_allow     - this many replacements are always fine (so one odd player in a
+#                      class of 10 doesn't count as 10%)
+#   max_rebuilds     - tries to build a passing player for one rank before stopping
+#   body             - believable [min, max] height (inches) and weight (lbs) by position
+#   wingspan_vs_height - believable wingspan minus height, in inches
+checks:
+  max_reject_share: 0.05
+  always_allow: 2
+  max_rebuilds: 5
+  body:
+    PG: {height: [67, 80], weight: [145, 235]}
+    SG: {height: [70, 82], weight: [155, 245]}
+    SF: {height: [73, 84], weight: [165, 265]}
+    PF: {height: [75, 86], weight: [180, 290]}
+    C:  {height: [77, 90], weight: [195, 330]}
+  wingspan_vs_height: [-2, 11]

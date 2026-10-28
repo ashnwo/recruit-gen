@@ -4,8 +4,9 @@ from typing import Optional
 
 import typer
 
+from recruit_gen.checks import ClassCheckError
 from recruit_gen.models import Recruit
-from recruit_gen.pipeline import run_pipeline
+from recruit_gen.pipeline import build_class
 from recruit_gen.stages import load_sport_config
 
 PACKAGE_DIR = Path(__file__).resolve().parent     # src/recruit_gen
@@ -49,6 +50,21 @@ def write_csv(recruits: list[dict], path: Path) -> None:
             writer.writerow({**{k: r[k] for k in base}, **r.get("ratings", {})})
 
 
+def write_rejects(rejects: list[dict], path: Path) -> None:
+    """Every player the clean-up check turned away, with the reasons."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(rejects[0]))
+        writer.writeheader()
+        writer.writerows(rejects)
+
+
+def rejects_path(out: Path) -> Path:
+    out = Path(out)
+    return out.with_name(f"{out.stem}_rejects.csv")
+
+
 app = typer.Typer()
 
 
@@ -74,12 +90,27 @@ def generate(
     if distinctive not in ("low", "normal", "high"):
         typer.echo("--distinctive must be low, normal or high.")
         raise typer.Exit(1)
-    recruits = run_pipeline(count, seed, sport_config, top=top, distinctive=distinctive)
+    try:
+        result = build_class(count, seed, sport_config, top=top, distinctive=distinctive)
+    except ClassCheckError as e:
+        typer.echo(f"Stopped by the clean-up check: {e}")
+        raise typer.Exit(1)
+    recruits = result.recruits
     write_csv(recruits, out)
+    old_rejects = rejects_path(out)
+    if result.rejects:
+        write_rejects(result.rejects, old_rejects)
+    elif old_rejects.exists():
+        old_rejects.unlink()          # don't leave a stale rejects file from an earlier run
     stars = {s: sum(r["stars"] == s for r in recruits) for s in (5, 4, 3, 2)}
     mix = ", ".join(f"{s}-star {n}" for s, n in stars.items() if n)
     kind = f"top {len(recruits)}" if top else f"{len(recruits)}"
     typer.echo(f"Wrote {kind} {sport_config.sport} recruits to {out}  ({mix})")
+    replaced = len({x["rank"] for x in result.rejects})
+    if replaced:
+        typer.echo(f"Clean-up check: replaced {replaced} player(s) who failed; reasons in {rejects_path(out)}")
+    else:
+        typer.echo("Clean-up check: every player passed.")
 
 
 if __name__ == "__main__":

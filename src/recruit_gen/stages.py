@@ -1,6 +1,6 @@
 """Pipeline stages. Every stage takes the list of recruit dicts and returns it
-enriched. Recruits stay plain dicts the whole way through; the last stage
-(validate_dedup) checks each one against the Recruit contract."""
+enriched. Recruits stay plain dicts the whole way through; the clean-up check
+in checks.py (validate_dedup) checks each one at the end."""
 
 import math
 from collections import defaultdict
@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from scipy.stats import norm, skewnorm
 
 from recruit_gen.models import (
-    ETHNICITIES, PhysicalsConfig, Recruit, SportConfig, StarBand, TalentConfig,
+    ETHNICITIES, PhysicalsConfig, SportConfig, StarBand, TalentConfig,
 )
 from recruit_gen.names import name_book, name_class
 from recruit_gen.ratings import frame, rate
@@ -177,6 +177,16 @@ def physicals(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
     return recruits
 
 
+def rank_within(recruits: list[dict], group_key: str, field: str) -> None:
+    """Rank players inside each group (position, state...) by national rank: 1, 2, 3..."""
+    groups = defaultdict(list)
+    for r in recruits:
+        groups[r[group_key]].append(r)
+    for group in groups.values():
+        for i, r in enumerate(sorted(group, key=lambda x: x["rank"]), start=1):
+            r[field] = i
+
+
 def star_band(rank: int, bands: list[StarBand]) -> tuple[StarBand, int]:
     """The star band a national rank falls in, plus the first rank of that band."""
     first = 1
@@ -235,13 +245,7 @@ def talent(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
         r["true_rank"] = max(1, math.ceil(t.population * norm.sf(true_z)))
         r["verdict"] = verdict_for(r["true_rank"], r["rank"], t)
 
-    # Position rank: order within each position by national rank.
-    by_pos = defaultdict(list)
-    for r in recruits:
-        by_pos[r["position"]].append(r)
-    for group in by_pos.values():
-        for i, r in enumerate(sorted(group, key=lambda x: x["rank"]), start=1):
-            r["pos_rank"] = i
+    rank_within(recruits, "position", "pos_rank")
     return recruits
 
 
@@ -291,13 +295,7 @@ def backgrounds(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
         r["ethnicity"] = eth_pickers[key].pick(rng)
         r["high_school"] = high_school(r, rng, config, prep_picker, pattern_picker)
 
-    # State rank: order within each state/country by national rank.
-    by_origin = defaultdict(list)
-    for r in recruits:
-        by_origin[r["origin"]].append(r)
-    for group in by_origin.values():
-        for i, r in enumerate(sorted(group, key=lambda x: x["rank"]), start=1):
-            r["state_rank"] = i
+    rank_within(recruits, "origin", "state_rank")
     return recruits
 
 
@@ -333,16 +331,3 @@ def names(recruits: list[dict], rng, config: SportConfig, distinctive: str = "no
         raise ValueError("No name settings loaded (configs/shared/names/names.yaml).")
     name_class(recruits, rng, name_book(config.names, distinctive), config.places)
     return recruits
-
-
-def validate_dedup(recruits: list[dict], rng) -> list[dict]:
-    """Last stage: every recruit must pass the Recruit contract.
-    model_dump() keeps only the contract's fields, so working values like
-    scout_z, true_z, gap, city, international and name_pool drop out here. Duplicate checks and rejects come in Piece 7."""
-    checked = []
-    for i, r in enumerate(recruits, start=1):
-        try:
-            checked.append(Recruit.model_validate(r).model_dump())
-        except ValidationError as e:
-            raise ValueError(f"Recruit #{i} broke the contract:\n{e}") from e
-    return checked

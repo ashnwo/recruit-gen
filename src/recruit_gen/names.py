@@ -323,10 +323,14 @@ def repeat_limits(count: int) -> tuple[int, int]:
     return 1 + count // 45, 1 + count // 30
 
 
-def name_class(recruits: list[dict], rng, book: NameBook, places) -> None:
-    """Give every recruit a unique, believable name."""
-    max_first, max_last = repeat_limits(len(recruits))
-    used_first, used_last, used_full = Counter(), Counter(), set()
+def name_class(recruits: list[dict], rng, book: NameBook, places, taken: list[dict] | None = None) -> None:
+    """Give every recruit a unique, believable name. `taken` = players already named
+    (used when the clean-up check builds a replacement player)."""
+    taken = taken or []
+    max_first, max_last = repeat_limits(len(recruits) + len(taken))
+    used_first = Counter(t["legal_first"] for t in taken)
+    used_last = Counter(t["last_name"] for t in taken)
+    used_full = {plain(f'{t["first_name"]} {t["last_name"]}') for t in taken}
     for r in recruits:
         pool = pool_for(r, places, rng)
         for attempt in range(80):
