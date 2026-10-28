@@ -397,6 +397,7 @@ class SportConfig(BaseModel):
     attributes: Optional[AttributesConfig] = None
     archetypes: dict[str, ArchetypeConfig] = {}
     checks: Optional[ChecksConfig] = None
+    position_groups: dict[str, list[str]] = {}   # words you can type for --position (guard, big...)
 
     @model_validator(mode="after")
     def rating_names_line_up(self):
@@ -405,6 +406,8 @@ class SportConfig(BaseModel):
         known_pos = set(self.positions) | {""}
         if self.checks is not None:
             problems += [f"checks body position '{x}'" for x in self.checks.body if x not in self.positions]
+        for group, members in self.position_groups.items():
+            problems += [f"position group {group} '{x}'" for x in members if x not in self.positions]
         for pos, p in self.positions.items():
             problems += [f"{pos} secondary '{x}'" for x in p.secondary if x not in known_pos]
             problems += [f"{pos} archetype '{x}'" for x in p.archetypes if x not in self.archetypes]

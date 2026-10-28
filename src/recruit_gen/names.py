@@ -248,13 +248,17 @@ class NameBook:
         return f"{pair[0]}.{pair[1]}." if rng.random() < n.dotted_share else pair
 
     # ------------------------------------------------------------------ one name
-    def draw(self, rng, pool: str, group: str) -> dict:
-        """One raw name (no repeat checks). Returns first, legal_first, last, suffix, heritage."""
+    def draw(self, rng, pool: str, group: str, first: str | None = None, last: str | None = None) -> dict:
+        """One raw name (no repeat checks). Returns first, legal_first, last, suffix, heritage.
+        first / last: names the user locked; the rest is drawn to fit them."""
+        if first and last:                   # the user picked the whole name
+            return {"first": first, "legal_first": first, "last": last, "suffix": "", "heritage": None}
+        locked_first, locked_last = first, last
         cfg = self.cfg
         heritage, styled_ok, suffix_key = None, False, "default"
         if pool in ("us_black", "us_white", "us_hispanic", "us_asian"):
             g = pool[3:]
-            last = self.last_tables[g].pick(rng)
+            last = locked_last or self.last_tables[g].pick(rng)
             heritage = self.heritage_for(group, last)
             suffix_key = g
             if heritage:
@@ -279,18 +283,23 @@ class NameBook:
                 first = poly.first[int(rng.integers(len(poly.first)))]
             else:
                 first = self.table("popular", group, "white" if x < 0.85 else "black").pick(rng)
-            last = (poly.last[int(rng.integers(len(poly.last)))] if rng.random() < 0.95
-                    else self.last_tables["white"].pick(rng))
+            last = locked_last or (poly.last[int(rng.integers(len(poly.last)))] if rng.random() < 0.95
+                                   else self.last_tables["white"].pick(rng))
             suffix_key = "polynesian"
         else:
             p = cfg.pools[pool]
             first = p.first[int(rng.integers(len(p.first)))]
-            last = p.last[int(rng.integers(len(p.last)))]
+            last = locked_last or p.last[int(rng.integers(len(p.last)))]
+        if locked_first:
+            first, styled_ok = locked_first, False
         legal = self.style(rng, first) if styled_ok else first
-        legal, last = to_ascii(legal), to_ascii(last)
+        legal = legal if locked_first else to_ascii(legal)
+        last = last if locked_last else to_ascii(last)
         suffix = self.suffix(rng, suffix_key) if suffix_key else ""
         goes_by = legal
-        if suffix == "III" and rng.random() < cfg.nicknames.trey_rate:
+        if locked_first:
+            pass                             # he goes by exactly what you typed
+        elif suffix == "III" and rng.random() < cfg.nicknames.trey_rate:
             goes_by = "Trey"
         elif rng.random() < cfg.nicknames.initials_rate:
             goes_by = self.initials(rng, legal) or legal
@@ -333,10 +342,14 @@ def name_class(recruits: list[dict], rng, book: NameBook, places, taken: list[di
     used_full = {plain(f'{t["first_name"]} {t["last_name"]}') for t in taken}
     for r in recruits:
         pool = pool_for(r, places, rng)
+        lk = r.get("locks")
+        first, last = (lk.first, lk.last) if lk is not None else (None, None)
         for attempt in range(80):
-            n = book.draw(rng, pool, r["ethnicity"])
-            relax = attempt >= 50          # struggling (tiny pools)? loosen the repeat limits
+            n = book.draw(rng, pool, r["ethnicity"], first=first, last=last)
             full = plain(f"{n['first']} {n['last']}")
+            if first and last:
+                break                      # exact name requested; the clean-up check catches repeats
+            relax = attempt >= 50          # struggling (tiny pools)? loosen the repeat limits
             if plain(n["legal_first"]) == plain(n["last"]):
                 continue                   # "Yusuf Yusuf" happens, but reads like a bug
             if not relax and (used_first[n["legal_first"]] >= max_first or used_last[n["last"]] >= max_last):

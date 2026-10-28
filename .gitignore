@@ -5,14 +5,16 @@ build/
 dist/
 wheels/
 *.egg-info
-*.pyc
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
-recruits.csv
 
 # Virtual environments
 .venv
 
-# Files
-recruits.csv.DS_Store
+# Generated classes (made on your machine, not stored on GitHub)
+output/
+recruits.csv
+
+# Mac
+.DS_Store

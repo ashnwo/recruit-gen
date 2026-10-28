@@ -14,6 +14,7 @@ from scipy.stats import norm, skewnorm
 from recruit_gen.models import (
     ETHNICITIES, PhysicalsConfig, SportConfig, StarBand, TalentConfig,
 )
+from recruit_gen.locks import Locks, ethnicity_mix_for, joint_table, match_share, star_ranks
 from recruit_gen.names import name_book, name_class
 from recruit_gen.ratings import frame, rate
 from recruit_gen.sampling import WeightedPicker
@@ -51,42 +52,71 @@ def load_sport_config(path: Path) -> SportConfig:
     raise SystemExit(1)
 
 
-def class_shape(count: int, rng, config: SportConfig, top: bool = False) -> list[dict]:
+NO_LOCKS = Locks()
+
+
+def locks_of(r: dict) -> Locks:
+    return r.get("locks") or NO_LOCKS
+
+
+def class_shape(count: int, rng, config: SportConfig, top: bool = False,
+                locks: Locks | None = None, taken: set | None = None) -> list[dict]:
     """Decide WHO is in the class by national rank.
     top=True  -> the best `count` players in the country (ranks 1..count)
     top=False -> a realistic mix: `count` different ranks picked at random from
                  everyone ranked (mostly 2-3 stars, the odd 5-star)
+    locks     -> a star lock limits the ranks; in top mode, other locks (say, centers
+                 only) spread the ranks out the way the best centers really rank
+    taken     -> ranks already used by other requests in the same class
 
     Each rank becomes a scouted talent score (scout_z) by asking: "if a player is
     ranked #r out of everyone, how far above average must he be?" That's the far
     right tail of a bell curve, which is where the talent pyramid comes from:
     the gap between #1 and #10 is huge, the gap between #500 and #510 is tiny."""
     t = config.talent
-    if count > t.pool_size:
-        raise ValueError(f"Can't make {count} recruits: only {t.pool_size} players are ranked "
-                         f"(pool_size in the config).")
-    if top:
-        ranks = np.arange(1, count + 1)
+    locks = locks or NO_LOCKS
+    taken = taken or set()
+    allowed = [r for r in star_ranks(locks.stars, config) if r not in taken]
+    if count > len(allowed):
+        raise ValueError(f"Can't make {count} recruits: only {len(allowed)} matching ranked spots are left "
+                         f"(pool_size in the config is {t.pool_size}).")
+    if not top:
+        ranks = sorted(int(x) for x in rng.choice(allowed, size=count, replace=False))
+    elif not locks.shapes_identity:
+        ranks = allowed[:count]
     else:
-        ranks = np.sort(rng.choice(np.arange(1, t.pool_size + 1), size=count, replace=False))
-    return [{"rank": int(r), "scout_z": float(norm.isf((r - 0.5) / t.population))} for r in ranks]
+        # Walk down the rankings; each rank is "one of ours" with the chance that a
+        # random ranked player matches the locks. The first `count` hits are the best
+        # matching players in the country (rare combos -> spread out further).
+        share = min(1.0, match_share(locks, config) or 1e-9)
+        ranks = [r for r in allowed if rng.random() < share][:count]
+        if len(ranks) < count:   # very rare combination: fill with the best ranks left
+            ranks = sorted(ranks + [r for r in allowed if r not in ranks][:count - len(ranks)])
+    return [{"rank": r, "scout_z": float(norm.isf((r - 0.5) / t.population)), "locks": locks}
+            for r in ranks]
 
 
 def origins(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
     """Where each player is from: international or not, then the state/country
-    (weighted by how many recruits it produces), then a hometown in it."""
+    (weighted by how many recruits it produces), then a hometown in it.
+    Players with identity locks get home AND position drawn together from the
+    locks' joint table, so the combination is realistic."""
     o, places = config.origins, config.places
     state_picker = WeightedPicker(o.states)
     country_picker = WeightedPicker(o.countries) if o.countries else None
+    joint_pickers: dict[Locks, WeightedPicker] = {}
     city_pickers: dict[str, WeightedPicker] = {}
     for r in recruits:
-        international = country_picker is not None and rng.random() < o.international_rate
-        if international:
-            code = country_picker.pick(rng)
-            info = places.countries[code]
+        lk = locks_of(r)
+        if lk.shapes_identity:
+            if lk not in joint_pickers:
+                joint_pickers[lk] = WeightedPicker(joint_table(lk, config))
+            code, international, pos = joint_pickers[lk].pick(rng)
+            r["position"] = pos                  # positions stage keeps this
         else:
-            code = state_picker.pick(rng)
-            info = places.states[code]
+            international = country_picker is not None and rng.random() < o.international_rate
+            code = (country_picker if international else state_picker).pick(rng)
+        info = places.countries[code] if international else places.states[code]
         if code not in city_pickers:
             city_pickers[code] = WeightedPicker(info.cities)
         city = city_pickers[code].pick(rng)
@@ -98,13 +128,12 @@ def origins(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
 
 
 def positions(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
-    """Weighted draw: each position comes up about as often as its share says."""
-    names = list(config.positions)
-    shares = [config.positions[p].share for p in names]
-    total = sum(shares)
-    probs = [s / total for s in shares]   # tiny rounding fix so they add to exactly 1
-    for r, pos in zip(recruits, rng.choice(names, size=len(recruits), p=probs)):
-        r["position"] = str(pos)
+    """Weighted draw: each position comes up about as often as its share says.
+    (Players whose position was already set by their locks keep it.)"""
+    picker = WeightedPicker({p: c.share for p, c in config.positions.items()})
+    for r in recruits:
+        if "position" not in r:
+            r["position"] = picker.pick(rng)
     return recruits
 
 
@@ -116,7 +145,8 @@ def archetypes(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
                       for p, c in config.positions.items()}
     for r in recruits:
         pos = r["position"]
-        r["archetype"] = arch_pickers[pos].pick(rng) if pos in arch_pickers else ""
+        locked = locks_of(r).archetype
+        r["archetype"] = locked or (arch_pickers[pos].pick(rng) if pos in arch_pickers else "")
         r["secondary_position"] = second_pickers[pos].pick(rng) if second_pickers[pos] else ""
     return recruits
 
@@ -160,7 +190,11 @@ def physicals(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
         pos_cfg = config.positions[r["position"]]
         arch = config.archetypes.get(r.get("archetype") or "")
         shift = arch.shift if arch else {}
-        height = int(round(samplers[r["position"]]() + shift.get("height", 0.0) * spreads[r["position"]]))
+        lk = locks_of(r)
+        if lk.height is not None:
+            height = lk.height
+        else:
+            height = int(round(samplers[r["position"]]() + shift.get("height", 0.0) * spreads[r["position"]]))
         w = pos_cfg.weight
         center = w.at_ref + w.lbs_per_inch * (height - w.ref_height) + shift.get("weight", 0.0) * w.sd
         r["height"] = height
@@ -168,7 +202,7 @@ def physicals(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
         # Cap the random swing at 2.5 sd each way (covers ~99% of real players) so a
         # freak draw can't make a 5'7" guard weigh 105 lbs.
         swing = float(np.clip(rng.normal(), -MAX_WEIGHT_SWING, MAX_WEIGHT_SWING))
-        r["weight"] = int(round(center + swing * w.sd))
+        r["weight"] = lk.weight if lk.weight is not None else int(round(center + swing * w.sd))
         if pos_cfg.wingspan:
             extra, spread = pos_cfg.wingspan
             span = height + extra + spread * rng.normal() + shift.get("wingspan", 0.0)
@@ -252,12 +286,7 @@ def talent(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
 def ethnicity_mix(r: dict, config: SportConfig) -> dict:
     """US-born: the position's mix, nudged by the state (Hawaii -> far more Polynesian).
     International: the country's own mix."""
-    places = config.places
-    if r["international"]:
-        return places.countries[r["origin"]].ethnicity
-    pos_mix = config.positions[r["position"]].ethnicity
-    nudge = places.states[r["origin"]].eth_mult
-    return {e: pos_mix.get(e, 0.0) * nudge.get(e, 1.0) for e in ETHNICITIES}
+    return ethnicity_mix_for(r["position"], r["origin"], r["international"], config)
 
 
 def high_school(r: dict, rng, config: SportConfig, prep_picker: WeightedPicker,
@@ -292,7 +321,7 @@ def backgrounds(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
         key = (r["position"], r["origin"], r["international"])
         if key not in eth_pickers:
             eth_pickers[key] = WeightedPicker(ethnicity_mix(r, config))
-        r["ethnicity"] = eth_pickers[key].pick(rng)
+        r["ethnicity"] = locks_of(r).ethnicity or eth_pickers[key].pick(rng)
         r["high_school"] = high_school(r, rng, config, prep_picker, pattern_picker)
 
     rank_within(recruits, "origin", "state_rank")
@@ -307,7 +336,7 @@ def development(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
     d = config.development
     picker = WeightedPicker({k: v.weight for k, v in d.trajectories.items()})
     for r in recruits:
-        name = picker.pick(rng)
+        name = locks_of(r).development or picker.pick(rng)
         traj = d.trajectories[name]
         r["development"] = name
         r["growth"] = traj.growth

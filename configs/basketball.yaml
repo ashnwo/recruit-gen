@@ -261,3 +261,17 @@ checks:
     PF: {height: [75, 86], weight: [180, 290]}
     C:  {height: [77, 90], weight: [195, 330]}
   wingspan_vs_height: [-2, 11]
+
+# Position groups you can type instead of exact positions (e.g. --position guard).
+position_groups:
+  guard: [PG, SG]
+  combo guard: [PG, SG]
+  point guard: [PG]
+  shooting guard: [SG]
+  wing: [SG, SF]
+  small forward: [SF]
+  forward: [SF, PF]
+  power forward: [PF]
+  big: [PF, C]
+  big man: [PF, C]
+  center: [C]

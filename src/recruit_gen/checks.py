@@ -45,12 +45,18 @@ def realism_problems(r: dict, config: SportConfig) -> list[str]:
         return []
     out = []
     bounds = c.body.get(r.get("position", ""))
+    lk = r.get("locks")
     for attr, unit in (("height", "in"), ("weight", "lbs")):
+        if lk is not None and getattr(lk, attr) is not None:
+            continue                     # you locked it on purpose (you got a warning up front)
+        if attr == "weight" and lk is not None and lk.height is not None:
+            continue                     # his weight follows the height you locked
         rng_ = getattr(bounds, attr) if bounds else None
         value = r.get(attr)
         if rng_ and value is not None and not rng_[0] <= value <= rng_[1]:
             out.append(f"{r['position']} {attr} {value} {unit} outside {rng_[0]:g}-{rng_[1]:g}")
-    if c.wingspan_vs_height and r.get("wingspan") is not None and r.get("height") is not None:
+    height_locked = lk is not None and lk.height is not None
+    if c.wingspan_vs_height and not height_locked and r.get("wingspan") is not None and r.get("height") is not None:
         diff = r["wingspan"] - r["height"]
         lo, hi = c.wingspan_vs_height
         if not lo <= diff <= hi:
