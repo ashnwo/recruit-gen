@@ -36,13 +36,17 @@ def find_config(sport: str, explicit: Optional[Path] = None) -> Path:
 
 
 def write_csv(recruits: list[dict], path: Path) -> None:
+    """One row per recruit. Columns follow the Recruit contract; the 2K ratings
+    are spread out into one column each, in edit-screen order."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    base = [f for f in Recruit.model_fields if f != "ratings"]
+    attrs = list(recruits[0].get("ratings", {})) if recruits else []
     with open(path, "w", newline="") as f:
-        # Column order comes from the Recruit contract, so it never depends on luck.
-        writer = csv.DictWriter(f, fieldnames=list(Recruit.model_fields))
+        writer = csv.DictWriter(f, fieldnames=base + attrs)
         writer.writeheader()
-        writer.writerows(recruits)
+        for r in recruits:
+            writer.writerow({**{k: r[k] for k in base}, **r.get("ratings", {})})
 
 
 app = typer.Typer()

@@ -9,27 +9,62 @@ sport: basketball
 #             gains lbs_per_inch for each inch taller, and varies by about sd lbs
 #   ethnicity - mix for US-born players at this position (each state then nudges
 #             it; international players use their country's mix from shared/places.yaml)
+#   secondary - chance of each second position ("" = none)
+#   wingspan  - [average inches longer than height, spread]
+#   roles     - how important each skill group is at this position: core / major / minor / low
+#   overrides - single ratings that differ from their group's role
+#   body      - starting point for body ratings for an average ranked recruit here
+#   ovr_body  - how much body ratings count toward OVR here
+#   archetypes - play styles at this position and how common each is
 positions:
   PG:
     share: 0.20
     height: {distribution: normal, loc: 74.0, scale: 1.8}        # ~6'2"
     weight: {ref_height: 74.0, at_ref: 180, lbs_per_inch: 5, sd: 10}
     ethnicity: {Black: 0.82, White: 0.145, Hispanic: 0.02, Asian: 0.01, Polynesian: 0.005}
+    secondary: {SG: 0.55, "": 0.45}
+    wingspan: [3.2, 2.0]
+    roles: {playmaking: "core", shooting: "major", inside: "minor", defense: "minor", rebounding: "low"}
+    overrides: {"Perimeter Defense": "major", Steal: "major", "Pass Perception": "major", "Driving Layup": "major", Hands: "major", "Interior Defense": "low", Block: "low", "Post Control": "low", "Post Hook": "low", "Post Fade": "low", "Standing Dunk": "low"}
+    body: {Speed: 80, Agility: 80, Strength: 45, Vertical: 72, "Lateral Quickness": 72, Stamina: 84}
+    ovr_body: {Speed: 1.5, Agility: 1, "Lateral Quickness": 1}
+    archetypes: {"Floor General": 0.28, "Shot Creator": 0.24, "Slashing Playmaker": 0.2, "3-and-D Guard": 0.14, "Two-Way Point": 0.14}
   SG:
     share: 0.22
     height: {distribution: normal, loc: 76.5, scale: 1.6}        # ~6'4.5"
     weight: {ref_height: 76.5, at_ref: 192, lbs_per_inch: 5, sd: 11}
     ethnicity: {Black: 0.8, White: 0.17, Hispanic: 0.02, Asian: 0.008, Polynesian: 0.002}
+    secondary: {SF: 0.4, PG: 0.25, "": 0.35}
+    wingspan: [3.5, 2.0]
+    roles: {shooting: "core", playmaking: "major", inside: "minor", defense: "minor", rebounding: "low"}
+    overrides: {"Pass Vision": "minor", "Pass IQ": "minor", "Driving Layup": "major", "Driving Dunk": "major", "Perimeter Defense": "major", Steal: "major", "Interior Defense": "low", Block: "low", "Post Control": "low", "Post Hook": "low", "Post Fade": "low"}
+    body: {Speed: 77, Agility: 76, Strength: 50, Vertical: 73, "Lateral Quickness": 70, Stamina: 84}
+    ovr_body: {Speed: 1, Agility: 1, Vertical: 0.5, "Lateral Quickness": 1}
+    archetypes: {Sharpshooter: 0.28, Slasher: 0.22, "3-and-D Wing": 0.2, "Shot Creator": 0.16, "Two-Way Scorer": 0.14}
   SF:
     share: 0.22
     height: {distribution: normal, loc: 79.0, scale: 1.5}        # ~6'7"
     weight: {ref_height: 79.0, at_ref: 205, lbs_per_inch: 6, sd: 12}
     ethnicity: {Black: 0.8, White: 0.17, Hispanic: 0.02, Asian: 0.005, Polynesian: 0.005}
+    secondary: {PF: 0.35, SG: 0.3, "": 0.35}
+    wingspan: [3.8, 2.0]
+    roles: {shooting: "major", inside: "major", playmaking: "minor", defense: "major", rebounding: "minor"}
+    overrides: {"Ball Handle": "major", "Post Hook": "minor", "Post Fade": "minor", "Interior Defense": "minor", Block: "minor"}
+    body: {Speed: 72, Agility: 70, Strength: 58, Vertical: 71, "Lateral Quickness": 66, Stamina: 84}
+    ovr_body: {Speed: 0.8, Agility: 0.6, Vertical: 0.5, Strength: 0.4, "Lateral Quickness": 0.8}
+    archetypes: {"Two-Way Wing": 0.26, Slasher: 0.2, "Stretch Wing": 0.18, "3-and-D Wing": 0.2, "Point Forward": 0.16}
   PF:
     share: 0.20
     height: {distribution: normal, loc: 80.5, scale: 1.4}        # ~6'8.5"
     weight: {ref_height: 80.5, at_ref: 220, lbs_per_inch: 6, sd: 14}
     ethnicity: {Black: 0.75, White: 0.22, Hispanic: 0.02, Asian: 0.005, Polynesian: 0.005}
+    secondary: {C: 0.4, SF: 0.3, "": 0.3}
+    wingspan: [4.0, 2.1]
+    roles: {inside: "core", rebounding: "major", defense: "major", shooting: "minor", playmaking: "low"}
+    overrides: {"Driving Layup": "major", "Mid-Range Shot": "major", Hands: "major", "Perimeter Defense": "minor", Steal: "minor", "Ball Handle": "minor"}
+    body: {Speed: 65, Agility: 62, Strength: 68, Vertical: 69, "Lateral Quickness": 58, Stamina: 82}
+    ovr_body: {Strength: 1, Vertical: 0.8, Speed: 0.4}
+    archetypes: {"Stretch Four": 0.26, "Glass Cleaner": 0.2, "Athletic Finisher": 0.24, "Post Scorer": 0.16, "Point Forward": 0.14}
   C:
     share: 0.16
     # Centers rarely run short (those become PFs) but a few are giants,
@@ -37,24 +72,32 @@ positions:
     height: {distribution: skewnormal, loc: 81.5, scale: 2.4, a: 3}
     weight: {ref_height: 83.0, at_ref: 235, lbs_per_inch: 7, sd: 16}
     ethnicity: {Black: 0.66, White: 0.31, Hispanic: 0.02, Asian: 0.005, Polynesian: 0.005}
+    secondary: {PF: 0.45, "": 0.55}
+    wingspan: [4.5, 2.3]
+    roles: {inside: "core", rebounding: "core", defense: "major", shooting: "low", playmaking: "low"}
+    overrides: {"Driving Layup": "minor", "Interior Defense": "core", Block: "core", "Perimeter Defense": "low", Steal: "low", "Free Throw": "minor", Hands: "major"}
+    body: {Speed: 58, Agility: 52, Strength: 74, Vertical: 63, "Lateral Quickness": 48, Stamina: 80}
+    ovr_body: {Strength: 1.2, Vertical: 0.6}
+    archetypes: {"Rim Protector": 0.3, "Post Scorer": 0.18, "Stretch Big": 0.18, "Glass Cleaner": 0.2, "Athletic Finisher": 0.14}
 
 # Talent and rankings.
 #   population  - senior varsity players nationwide that rankings are drawn from
 #   pool_size   - how many of them get a national ranking (your class is drawn from these)
 #   scout_error - how wrong scouts are about a player's real talent. Bigger = more
-#                 steals and busts (0.3 gives ~half "As Advertised", ~5-7% busts/steals)
+#                 steals and busts. 0.25 (with the development biases below) gives
+#                 ~half "As Advertised", ~20% each Under/Overrated, ~7% Steal, ~4% Bust
+#   international_error_mult - foreign players are harder to scout
 #   stars       - each star level: the last national rank that gets it, and the
 #                 247-style rating range (best rank in the band gets the first number)
 #   verdicts    - compare where his TRUE talent would rank him to his scouted rank.
 #                 "4" = true rank 4 times better (Steal) or worse (Bust).
 #                 min_gap: ranks must also be at least this many spots apart, so
 #                 #1 really being #2 is still "As Advertised".
-#                 With these numbers: ~half As Advertised, ~20% each Under/Overrated,
-#                 ~5-7% each Steal/Bust
 talent:
+  international_error_mult: 1.25
   population: 100000
   pool_size: 1000
-  scout_error: 0.3
+  scout_error: 0.25
   stars:
     - {stars: 5, last_rank: 25,   rating: [100, 98]}
     - {stars: 4, last_rank: 125,  rating: [97, 90]}
@@ -86,3 +129,113 @@ prep:
   star_boost: {5: 2.2, 4: 1.4, 3: 0.8, 2: 0.4}
   international_rate: 0.55
   schools: {"IMG Academy (Bradenton, FL)": 3, "Montverde Academy (Montverde, FL)": 3, "Prolific Prep (Napa, CA)": 2, "Link Academy (Branson, MO)": 2, "Oak Hill Academy (Mouth of Wilson, VA)": 2, "Sunrise Christian Academy (Bel Aire, KS)": 2, "Brewster Academy (Wolfeboro, NH)": 2, "AZ Compass Prep (Chandler, AZ)": 2, "Wasatch Academy (Mount Pleasant, UT)": 2, "Dynamic Prep (Irving, TX)": 1, "Columbus High (Miami, FL)": 1, "Long Island Lutheran (Brookville, NY)": 1, "Paul VI (Chantilly, VA)": 1, "DeMatha Catholic (Hyattsville, MD)": 1, "Sierra Canyon (Chatsworth, CA)": 2, "Harvard-Westlake (Los Angeles, CA)": 1, "Perkiomen School (Pennsburg, PA)": 1, "La Lumiere School (La Porte, IN)": 1, "Overtime Elite (Atlanta, GA)": 1, "NBA Academy Africa (Saly, Senegal)": 1}
+
+# Development: how a player grows.
+#   gap   - how far CURRENT ability sits below his ceiling (in talent units)
+#   bias  - how scouts misjudge this type, in scouting errors (+ = overrated: early
+#           bloomers look great now; - = underrated: late bloomers get missed)
+#   noise - extra scouting uncertainty (raw players are hard to read)
+#   growth - label for the edit sheet
+development:
+  gap_spread: 0.3       # each player's gap varies by about this share
+  trajectories:
+    "Early Bloomer":  {weight: 0.22, gap: 0.20, bias: 0.5,   noise: 0.0,  growth: "Low"}
+    "Steady Climber": {weight: 0.43, gap: 0.55, bias: 0.0,   noise: 0.0,  growth: "Medium"}
+    "Late Bloomer":   {weight: 0.22, gap: 0.95, bias: -0.5,  noise: 0.15, growth: "High"}
+    "Raw Project":    {weight: 0.13, gap: 1.30, bias: -0.15, noise: 0.35, growth: "Very High"}
+
+# Ratings (2K style, 25-99).
+#   A skill rating = level middle + level spread x talent + group bonus + archetype + noise.
+#   talent here is 0 for a typical ranked recruit, +3 for the very best, -3 for the bottom.
+#   group_spread: each player gets his own strength/weakness for a whole skill group
+#   ovr_weights:  how much each role counts toward OVR
+#   potential:    2K "Potential" = center + per_sd x TRUE talent (+ noise), never below OVR
+#   athletic_from_talent: how much better players also tend to be better athletes
+ratings:
+  min: 25
+  max: 99
+  levels: {core: [62, 4.6], major: [54, 4.2], minor: [45, 3.6], low: [36, 2.6]}
+  group_spread: 3.0
+  attr_noise: 2.4
+  ovr_weights: {core: 3, major: 1.5, minor: 0.5, low: 0}
+  potential: {center: 68, per_sd: 7, noise: 1.5, min: 55, max: 97}
+  athletic_from_talent: 0.25
+
+# The 2K attributes, in edit-screen order (this is the CSV column order).
+#   groups: which skill group each skill rating belongs to
+#   body:   body ratings come from frame + athleticism, not skill:
+#           position base + athletic x A + height x H + weight x W + talent x T
+#           (height/weight are how far above average for his position)
+#   fixed:  same for everyone: [average, spread]
+attributes:
+  order: ["Close Shot", "Driving Layup", "Driving Dunk", "Standing Dunk", "Post Control", "Post Hook", "Post Fade", "Draw Foul", "Hands", "Mid-Range Shot", "Three-Point Shot", "Free Throw", "Shot IQ", "Offensive Consistency", "Pass Accuracy", "Ball Handle", "Speed With Ball", "Pass IQ", "Pass Vision", "Interior Defense", "Perimeter Defense", "Steal", "Block", "Lateral Quickness", "Help Defense IQ", "Pass Perception", "Defensive Consistency", "Offensive Rebound", "Defensive Rebound", "Speed", "Agility", "Strength", "Vertical", "Stamina", "Hustle", "Overall Durability"]
+  groups:
+    inside: ["Close Shot", "Driving Layup", "Driving Dunk", "Standing Dunk", "Post Control", "Post Hook", "Post Fade", "Draw Foul", "Hands"]
+    shooting: ["Mid-Range Shot", "Three-Point Shot", "Free Throw", "Shot IQ", "Offensive Consistency"]
+    playmaking: ["Pass Accuracy", "Ball Handle", "Speed With Ball", "Pass IQ", "Pass Vision"]
+    defense: ["Interior Defense", "Perimeter Defense", "Steal", "Block", "Help Defense IQ", "Pass Perception", "Defensive Consistency"]
+    rebounding: ["Offensive Rebound", "Defensive Rebound"]
+  body:
+    Speed: {athletic: 4.5, height: -1, weight: -1.5, talent: 1.6}
+    Agility: {athletic: 4, height: -1.5, weight: -1, talent: 1.6}
+    Strength: {athletic: 1, height: 0.5, weight: 5, talent: 1.2}
+    Vertical: {athletic: 5, weight: -1, talent: 1.6}
+    "Lateral Quickness": {athletic: 3.5, height: -1, weight: -1, talent: 2}
+    Stamina: {athletic: 1.2, talent: 1}
+  fixed:
+    Hustle: [72, 9]
+    "Overall Durability": [86, 6]
+
+# Archetypes (play styles).
+#   mods  - rating changes for that style
+#   shift - body changes: height/weight/athletic in spreads (sd), wingspan in inches
+archetypes:
+  "Floor General":
+    mods: {"Pass Accuracy": 6, "Pass IQ": 7, "Pass Vision": 7, "Ball Handle": 3, "Shot IQ": 3, "Three-Point Shot": -2, "Driving Dunk": -3}
+    shift: {athletic: -0.2}
+  "Shot Creator":
+    mods: {"Ball Handle": 5, "Mid-Range Shot": 7, "Three-Point Shot": 3, "Shot IQ": 4, "Offensive Consistency": 3, "Pass Vision": -2}
+  "Slashing Playmaker":
+    mods: {"Driving Layup": 6, "Driving Dunk": 6, "Speed With Ball": 4, "Draw Foul": 5, "Three-Point Shot": -4}
+    shift: {athletic: 0.5}
+  "3-and-D Guard":
+    mods: {"Three-Point Shot": 6, "Perimeter Defense": 7, Steal: 4, "Lateral Quickness": 4, "Ball Handle": -3, "Pass Vision": -4}
+  "Two-Way Point":
+    mods: {"Perimeter Defense": 5, Steal: 4, "Pass Accuracy": 2, "Mid-Range Shot": 2, "Defensive Consistency": 3}
+  "Sharpshooter":
+    mods: {"Three-Point Shot": 9, "Mid-Range Shot": 5, "Free Throw": 6, "Offensive Consistency": 4, "Shot IQ": 3, "Driving Dunk": -5, Strength: -3}
+    shift: {athletic: -0.3}
+  "Slasher":
+    mods: {"Driving Layup": 7, "Driving Dunk": 8, "Draw Foul": 5, "Speed With Ball": 3, "Three-Point Shot": -5}
+    shift: {athletic: 0.6}
+  "3-and-D Wing":
+    mods: {"Three-Point Shot": 6, "Perimeter Defense": 7, Steal: 3, "Lateral Quickness": 4, "Ball Handle": -3}
+  "Two-Way Scorer":
+    mods: {"Mid-Range Shot": 4, "Three-Point Shot": 3, "Perimeter Defense": 4, "Driving Layup": 3}
+  "Two-Way Wing":
+    mods: {"Perimeter Defense": 5, "Interior Defense": 3, "Mid-Range Shot": 3, "Three-Point Shot": 2, "Defensive Consistency": 3}
+    shift: {height: 0.2}
+  "Point Forward":
+    mods: {"Pass Accuracy": 7, "Pass Vision": 7, "Pass IQ": 6, "Ball Handle": 6, "Speed With Ball": 3}
+    shift: {height: 0.3}
+  "Stretch Wing":
+    mods: {"Three-Point Shot": 7, "Mid-Range Shot": 4, "Free Throw": 3, "Interior Defense": -3}
+    shift: {height: 0.4, weight: -0.3}
+  "Stretch Four":
+    mods: {"Three-Point Shot": 10, "Mid-Range Shot": 6, "Free Throw": 5, "Post Control": -4, "Offensive Rebound": -4}
+    shift: {weight: -0.4}
+  "Glass Cleaner":
+    mods: {"Offensive Rebound": 9, "Defensive Rebound": 9, "Standing Dunk": 4, Hustle: 8, "Three-Point Shot": -6, "Ball Handle": -4}
+    shift: {weight: 0.5, wingspan: 1}
+  "Athletic Finisher":
+    mods: {"Driving Dunk": 8, "Standing Dunk": 7, Vertical: 6, Block: 4, "Three-Point Shot": -6}
+    shift: {athletic: 0.8, weight: -0.2}
+  "Post Scorer":
+    mods: {"Post Control": 9, "Post Hook": 9, "Post Fade": 7, "Close Shot": 5, Hands: 4, "Three-Point Shot": -5}
+    shift: {weight: 0.6, athletic: -0.4}
+  "Rim Protector":
+    mods: {Block: 10, "Interior Defense": 9, "Help Defense IQ": 6, "Defensive Rebound": 4, "Three-Point Shot": -6, "Ball Handle": -4}
+    shift: {height: 0.5, wingspan: 1.5}
+  "Stretch Big":
+    mods: {"Three-Point Shot": 10, "Mid-Range Shot": 6, "Free Throw": 5, "Post Control": -3, "Offensive Rebound": -3}
+    shift: {weight: -0.5}

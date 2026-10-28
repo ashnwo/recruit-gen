@@ -1,3 +1,4 @@
+from collections import Counter
 from pathlib import Path
 from typing import Annotated, Literal, Optional
 
@@ -5,6 +6,7 @@ from pydantic import BaseModel, Field, TypeAdapter, field_validator, model_valid
 
 Ethnicity = Literal["Black", "White", "Hispanic", "Asian", "Polynesian"]
 ETHNICITIES: tuple[str, ...] = Ethnicity.__args__
+Role = Literal["core", "major", "minor", "low"]   # how important a skill group is at a position
 Weight = Annotated[float, Field(gt=0)]          # a relative weight: any positive number
 Share = Annotated[float, Field(ge=0, le=1)]     # a fraction from 0 to 1
 
@@ -16,9 +18,12 @@ def check_adds_to_one(mix: dict, what: str) -> dict:
     return mix
 
 
+Rating = Annotated[int, Field(ge=1, le=99)]
+
+
 class Recruit(BaseModel):
     """The contract every finished recruit must meet.
-    Field order = CSV column order. It grows as each stage becomes real."""
+    Field order = CSV column order (the 2K ratings get flattened onto the end)."""
     rank: int = Field(ge=1)              # national rank (scouted)
     stars: int = Field(ge=1, le=5)
     rating: float = Field(ge=0, le=101)  # 247-style rating, e.g. 98.6
@@ -26,18 +31,32 @@ class Recruit(BaseModel):
     last_name: str = Field(min_length=1)
     suffix: str                          # "", Jr., II, III, IV
     position: str
+    secondary_position: str              # "" if none
     pos_rank: int = Field(ge=1)          # rank among this class's players at his position
+    archetype: str
+    ovr: Rating                          # current overall
+    potential: Rating                    # 2K "Potential": his ceiling
+    development: str                     # Early Bloomer / Steady Climber / Late Bloomer / Raw Project
+    growth: str                          # Low / Medium / High / Very High
     height: int = Field(ge=60, le=96)    # inches; outside 5'0"-8'0" = something broke
     height_ft: str                       # same height written like 6'5"
     weight: int = Field(ge=100, le=400)  # lbs; outside this = something broke
+    wingspan: Optional[float] = Field(default=None, ge=60, le=104)   # inches
+    wingspan_ft: str = ""
     ethnicity: Ethnicity
     hometown: str                        # "Atlanta, GA" or "Lagos, Nigeria"
     origin: str                          # state code (GA) or country code (NGA)
     state_rank: int = Field(ge=1)        # rank among this class's players from the same state/country
     high_school: str
-    development: str
     true_rank: int = Field(ge=1)         # where his REAL talent would rank him (hidden from scouts)
     verdict: str                         # Steal / Underrated / As Advertised / Overrated / Bust
+    ratings: dict[str, Rating]           # 2K attributes, e.g. {"Three-Point Shot": 74, ...}
+
+    @model_validator(mode="after")
+    def ceiling_not_below_current(self):
+        if self.potential < self.ovr:
+            raise ValueError(f"potential {self.potential} is below ovr {self.ovr}")
+        return self
 
 
 # ---- height distributions (Days 8-14) ------------------------------------------
@@ -84,6 +103,13 @@ class PositionConfig(BaseModel):
     height: PhysicalsConfig
     weight: WeightParams
     ethnicity: dict[Ethnicity, Share]    # mix for US-born players at this position
+    secondary: dict[str, Share] = {}     # second position -> chance ("" = none)
+    wingspan: Optional[tuple[float, Annotated[float, Field(ge=0)]]] = None   # [inches past height, spread]
+    roles: dict[str, Role] = {}          # skill group -> role
+    overrides: dict[str, Role] = {}      # single rating -> role
+    body: dict[str, float] = {}          # body rating starting points
+    ovr_body: dict[str, Annotated[float, Field(ge=0)]] = {}
+    archetypes: dict[str, Weight] = {}
 
     @field_validator("ethnicity")
     @classmethod
@@ -255,6 +281,7 @@ class VerdictCutoffs(BaseModel):
 
 
 class TalentConfig(BaseModel):
+    international_error_mult: float = Field(default=1.0, ge=1)
     population: int = Field(gt=0)
     pool_size: int = Field(gt=0)
     scout_error: float = Field(ge=0)
@@ -273,6 +300,73 @@ class TalentConfig(BaseModel):
         return self
 
 
+# ---- development, ratings, archetypes (Piece 6) ----------------------------------
+class Trajectory(BaseModel):
+    weight: Weight
+    gap: float = Field(ge=0)             # current ability below ceiling, in talent units
+    bias: float                          # scouting bias, in scouting errors (+ = overrated)
+    noise: float = Field(ge=0)           # extra scouting uncertainty
+    growth: str
+
+
+class DevelopmentConfig(BaseModel):
+    gap_spread: float = Field(ge=0)
+    trajectories: dict[str, Trajectory] = Field(min_length=1)
+
+
+class PotentialRules(BaseModel):
+    center: float
+    per_sd: float
+    noise: float = Field(ge=0)
+    min: int
+    max: int
+
+
+class RatingsConfig(BaseModel):
+    min: int = Field(ge=1)
+    max: int = Field(le=99)
+    levels: dict[Role, tuple[float, Annotated[float, Field(ge=0)]]]   # role -> [middle, spread]
+    group_spread: float = Field(ge=0)
+    attr_noise: float = Field(ge=0)
+    ovr_weights: dict[Role, Annotated[float, Field(ge=0)]]
+    potential: PotentialRules
+    athletic_from_talent: float = Field(ge=0, lt=1)
+
+
+class BodyLoad(BaseModel):
+    athletic: float = 0.0
+    height: float = 0.0
+    weight: float = 0.0
+    talent: float = 0.0
+
+
+class AttributesConfig(BaseModel):
+    order: list[str] = Field(min_length=1)
+    groups: dict[str, list[str]] = Field(min_length=1)
+    body: dict[str, BodyLoad] = {}
+    fixed: dict[str, tuple[float, Annotated[float, Field(ge=0)]]] = {}
+
+    @model_validator(mode="after")
+    def every_attribute_has_one_home(self):
+        homes = Counter([a for lst in self.groups.values() for a in lst] + list(self.body) + list(self.fixed))
+        doubled = [a for a, n in homes.items() if n > 1]
+        missing = [a for a in self.order if a not in homes]
+        extra = [a for a in homes if a not in self.order]
+        if doubled or missing or extra:
+            raise ValueError(f"attributes don't line up: in two places {doubled}, "
+                             f"not in any group {missing}, not in order {extra}")
+        return self
+
+    @property
+    def group_of(self) -> dict[str, str]:
+        return {a: g for g, lst in self.groups.items() for a in lst}
+
+
+class ArchetypeConfig(BaseModel):
+    mods: dict[str, float] = {}
+    shift: dict[Literal["height", "weight", "athletic", "wingspan"], float] = {}
+
+
 class SportConfig(BaseModel):
     sport: str
     positions: dict[str, PositionConfig] = Field(min_length=1)
@@ -281,6 +375,31 @@ class SportConfig(BaseModel):
     prep: PrepConfig
     places: PlacesData                   # filled in from configs/shared/places.yaml by the loader
     names: Optional[NamesConfig] = None  # filled in from configs/shared/names/names.yaml by the loader
+    development: Optional[DevelopmentConfig] = None
+    ratings: Optional[RatingsConfig] = None
+    attributes: Optional[AttributesConfig] = None
+    archetypes: dict[str, ArchetypeConfig] = {}
+
+    @model_validator(mode="after")
+    def rating_names_line_up(self):
+        """Catch typos: every attribute, group, archetype and position named anywhere must exist."""
+        problems = []
+        known_pos = set(self.positions) | {""}
+        for pos, p in self.positions.items():
+            problems += [f"{pos} secondary '{x}'" for x in p.secondary if x not in known_pos]
+            problems += [f"{pos} archetype '{x}'" for x in p.archetypes if x not in self.archetypes]
+        if self.attributes is not None:
+            a = self.attributes
+            skills, body = set(a.group_of), set(a.body)
+            for pos, p in self.positions.items():
+                problems += [f"{pos} role group '{x}'" for x in p.roles if x not in a.groups]
+                problems += [f"{pos} override '{x}'" for x in p.overrides if x not in skills]
+                problems += [f"{pos} body '{x}'" for x in list(p.body) + list(p.ovr_body) if x not in body]
+            for name, arch in self.archetypes.items():
+                problems += [f"archetype {name} mod '{x}'" for x in arch.mods if x not in a.order]
+        if problems:
+            raise ValueError("unknown names: " + "; ".join(problems))
+        return self
 
     @model_validator(mode="after")
     def origins_exist_in_places(self):

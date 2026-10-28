@@ -15,6 +15,7 @@ from recruit_gen.models import (
     ETHNICITIES, PhysicalsConfig, Recruit, SportConfig, StarBand, TalentConfig,
 )
 from recruit_gen.names import name_book, name_class
+from recruit_gen.ratings import frame, rate
 from recruit_gen.sampling import WeightedPicker
 
 
@@ -107,6 +108,19 @@ def positions(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
     return recruits
 
 
+def archetypes(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
+    """Play style and second position, weighted by the position's settings.
+    Runs before physicals because some styles shape the body (Rim Protectors run taller)."""
+    arch_pickers = {p: WeightedPicker(c.archetypes) for p, c in config.positions.items() if c.archetypes}
+    second_pickers = {p: WeightedPicker({k: v for k, v in c.secondary.items()} or {"": 1})
+                      for p, c in config.positions.items()}
+    for r in recruits:
+        pos = r["position"]
+        r["archetype"] = arch_pickers[pos].pick(rng) if pos in arch_pickers else ""
+        r["secondary_position"] = second_pickers[pos].pick(rng) if second_pickers[pos] else ""
+    return recruits
+
+
 def make_height_sampler(height_cfg: PhysicalsConfig, rng):
     """Turn one height config into a no-argument function that returns a height.
     The config's "distribution" field picks the function (no if-branches)."""
@@ -131,20 +145,35 @@ def feet_inches(height: int) -> str:
     return f"{height // 12}'{height % 12}\""
 
 
+def feet_inches_half(inches: float) -> str:
+    whole = int(inches // 12)
+    rest = inches - whole * 12
+    return f"{whole}'{rest:g}\""
+
+
 def physicals(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
-    """Height from the player's position, then weight from that height."""
+    """Height from the player's position, then weight from that height, then wingspan.
+    His archetype can nudge all three (shift is in spreads; wingspan in inches)."""
     samplers = {pos: make_height_sampler(p.height, rng) for pos, p in config.positions.items()}
+    spreads = {pos: frame(p)[1] for pos, p in config.positions.items()}
     for r in recruits:
         pos_cfg = config.positions[r["position"]]
-        height = int(round(samplers[r["position"]]()))
+        arch = config.archetypes.get(r.get("archetype") or "")
+        shift = arch.shift if arch else {}
+        height = int(round(samplers[r["position"]]() + shift.get("height", 0.0) * spreads[r["position"]]))
         w = pos_cfg.weight
-        center = w.at_ref + w.lbs_per_inch * (height - w.ref_height)
+        center = w.at_ref + w.lbs_per_inch * (height - w.ref_height) + shift.get("weight", 0.0) * w.sd
         r["height"] = height
         r["height_ft"] = feet_inches(height)
         # Cap the random swing at 2.5 sd each way (covers ~99% of real players) so a
         # freak draw can't make a 5'7" guard weigh 105 lbs.
         swing = float(np.clip(rng.normal(), -MAX_WEIGHT_SWING, MAX_WEIGHT_SWING))
         r["weight"] = int(round(center + swing * w.sd))
+        if pos_cfg.wingspan:
+            extra, spread = pos_cfg.wingspan
+            span = height + extra + spread * rng.normal() + shift.get("wingspan", 0.0)
+            r["wingspan"] = round(span * 2) / 2                      # nearest half inch
+            r["wingspan_ft"] = feet_inches_half(r["wingspan"])
     return recruits
 
 
@@ -188,14 +217,21 @@ def verdict_for(true_rank: int, rank: int, t: TalentConfig) -> str:
 
 def talent(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
     """Stars and rating from the scouted rank; then the hidden truth.
-    True talent = what scouts saw + scouting error. Where that true talent would
-    rank him nationally decides if he's a steal, a bust, or as advertised."""
+    True talent = what scouts saw + scouting error (bigger for international players
+    and raw prospects; early bloomers tend to be overrated, late bloomers underrated).
+    Where that true talent would rank him nationally decides steal / bust / as advertised."""
     t = config.talent
     for r in recruits:
         band, _ = star_band(r["rank"], t.stars)
         r["stars"] = band.stars
         r["rating"] = rating_for(r["rank"], t.stars)
-        true_z = r["scout_z"] + rng.normal(0, t.scout_error)
+        # How hard he is to scout: international players and raw prospects are harder.
+        traj = config.development.trajectories[r["development"]] if r.get("development") else None
+        error = t.scout_error * (t.international_error_mult if r.get("international") else 1.0)
+        error *= 1.0 + (traj.noise if traj else 0.0)
+        bias = (traj.bias if traj else 0.0) * t.scout_error   # + = scouts overrate this type
+        true_z = r["scout_z"] - bias + rng.normal(0, error)
+        r["true_z"] = true_z
         r["true_rank"] = max(1, math.ceil(t.population * norm.sf(true_z)))
         r["verdict"] = verdict_for(r["true_rank"], r["rank"], t)
 
@@ -265,9 +301,28 @@ def backgrounds(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
     return recruits
 
 
-def development(recruits: list[dict], rng) -> list[dict]:
+def development(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
+    """How each player grows: his trajectory and how far current ability sits below
+    his ceiling (the gap). Runs before talent, because scouts misjudge some types."""
+    if config.development is None:
+        raise ValueError("No development settings in the sport config.")
+    d = config.development
+    picker = WeightedPicker({k: v.weight for k, v in d.trajectories.items()})
     for r in recruits:
-        r["development"] = "star"   # stub (Piece 6)
+        name = picker.pick(rng)
+        traj = d.trajectories[name]
+        r["development"] = name
+        r["growth"] = traj.growth
+        r["gap"] = traj.gap * max(0.2, rng.normal(1.0, d.gap_spread))   # working value
+    return recruits
+
+
+def ratings(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
+    """2K ratings, OVR and potential from position, archetype, body and talent (see ratings.py)."""
+    if config.ratings is None or config.attributes is None:
+        raise ValueError("No ratings/attributes settings in the sport config.")
+    for r in recruits:
+        rate(r, rng, config)
     return recruits
 
 
@@ -283,7 +338,7 @@ def names(recruits: list[dict], rng, config: SportConfig, distinctive: str = "no
 def validate_dedup(recruits: list[dict], rng) -> list[dict]:
     """Last stage: every recruit must pass the Recruit contract.
     model_dump() keeps only the contract's fields, so working values like
-    scout_z, city, international and name_pool drop out here. Duplicate checks and rejects come in Piece 7."""
+    scout_z, true_z, gap, city, international and name_pool drop out here. Duplicate checks and rejects come in Piece 7."""
     checked = []
     for i, r in enumerate(recruits, start=1):
         try:
