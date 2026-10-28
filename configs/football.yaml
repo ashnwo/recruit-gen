@@ -1,0 +1,415 @@
+# Football settings (EA College Football 26/27 Dynasty, carries over to Madden).
+# Same format as basketball.yaml - see that file for what each setting means.
+# Adding this sport took no new code paths: football is just data.
+sport: football
+
+# Positions: share, height curve, weight formula, ethnicity mix, roles, archetypes...
+#   elite_tilt      - below 0 = rarely ranked near the top (kickers almost never 5-stars)
+#   origin_override - some positions come from special places (Australian punters)
+positions:
+  QB:   # Quarterback
+    share: 0.0727
+    height: {distribution: normal, loc: 74.5, scale: 1.8}
+    weight: {ref_height: 74.5, at_ref: 205, lbs_per_inch: 4.17, sd: 13.0}
+    ethnicity: {Black: 0.43, White: 0.49, Hispanic: 0.035, Polynesian: 0.035, Asian: 0.01}
+    roles: {passing: "core", carrying: "minor", receiving: "none", run_block: "none", pass_block: "none"}
+    overrides: {CTH: "low", RET: "none", SFA: "low", TRK: "low", SPM: "low"}
+    body: {SPD: 78, ACC: 80, AGI: 76, COD: 72, STR: 55, JMP: 70, STA: 85, AWR: 52, PRC: 30}
+    ovr_body: {AWR: 2, SPD: 0.4, ACC: 0.3}
+    archetypes: {"Pocket Passer": 0.36, "Dual Threat": 0.3, "Backfield Creator": 0.26, "Pure Runner": 0.08}
+  RB:   # Running Back
+    share: 0.0623
+    elite_tilt: -0.15
+    height: {distribution: normal, loc: 70.5, scale: 1.8}
+    weight: {ref_height: 70.5, at_ref: 200, lbs_per_inch: 3.89, sd: 12.1}
+    ethnicity: {Black: 0.85, White: 0.085, Hispanic: 0.04, Polynesian: 0.02, Asian: 0.005}
+    roles: {carrying: "core", receiving: "minor", pass_block: "low", run_block: "low", returning: "major"}
+    overrides: {CTH: "major", LBK: "low"}
+    body: {SPD: 86, ACC: 87, AGI: 84, COD: 82, STR: 62, JMP: 80, STA: 85, AWR: 48, PRC: 25}
+    ovr_body: {SPD: 1.5, ACC: 1.5, AGI: 1, COD: 1, AWR: 1}
+    archetypes: {"Elusive Back": 0.3, "Contact Seeker": 0.24, "Backfield Threat": 0.24, "Elusive Bruiser": 0.22}
+  WR:   # Wide Receiver
+    share: 0.1557
+    height: {distribution: normal, loc: 72.8, scale: 2.3}
+    weight: {ref_height: 72.8, at_ref: 182, lbs_per_inch: 3.65, sd: 11.2}
+    ethnicity: {Black: 0.85, White: 0.11, Hispanic: 0.025, Polynesian: 0.01, Asian: 0.005}
+    roles: {receiving: "core", carrying: "minor", run_block: "low", returning: "major"}
+    overrides: {RBK: "low", IBL: "low"}
+    body: {SPD: 86, ACC: 87, AGI: 83, COD: 80, STR: 50, JMP: 84, STA: 85, AWR: 48, PRC: 25}
+    ovr_body: {SPD: 2, ACC: 1, AGI: 0.6, JMP: 0.4, AWR: 1}
+    archetypes: {Speedster: 0.18, "Route Artist": 0.18, "Physical Route Runner": 0.18, "Contested Specialist": 0.16, Gadget: 0.12, "Elusive Route Runner": 0.18}
+  TE:   # Tight End
+    share: 0.0415
+    elite_tilt: -0.2
+    height: {distribution: normal, loc: 76.5, scale: 1.3}
+    weight: {ref_height: 76.5, at_ref: 236, lbs_per_inch: 4.85, sd: 12.5}
+    ethnicity: {Black: 0.4, White: 0.52, Hispanic: 0.03, Polynesian: 0.045, Asian: 0.005}
+    roles: {receiving: "core", run_block: "major", pass_block: "minor", carrying: "low"}
+    overrides: {CAR: "minor", BTK: "minor", LBK: "minor"}
+    body: {SPD: 79, ACC: 81, AGI: 72, COD: 66, STR: 68, JMP: 76, STA: 83, AWR: 46, PRC: 25}
+    ovr_body: {SPD: 1, STR: 0.8, AWR: 1}
+    archetypes: {"Vertical Threat": 0.3, Possession: 0.25, "Pure Blocker": 0.2, "Physical Route Runner": 0.25}
+  OT:   # Offensive Tackle
+    share: 0.0727
+    height: {distribution: normal, loc: 77.6, scale: 1.2}
+    weight: {ref_height: 77.6, at_ref: 298, lbs_per_inch: 5.83, sd: 18.7}
+    ethnicity: {Black: 0.4, White: 0.48, Hispanic: 0.04, Polynesian: 0.075, Asian: 0.005}
+    roles: {run_block: "core", pass_block: "core"}
+    overrides: {LBK: "minor"}
+    body: {SPD: 58, ACC: 68, AGI: 54, COD: 46, STR: 80, JMP: 55, STA: 80, AWR: 46, PRC: 20}
+    ovr_body: {STR: 2, AGI: 0.6, ACC: 0.4, AWR: 1}
+    archetypes: {"Pass Protector": 0.32, "Raw Strength": 0.24, Agile: 0.22, "Well Rounded": 0.22}
+  OG:   # Offensive Guard
+    share: 0.0519
+    elite_tilt: -0.35
+    height: {distribution: normal, loc: 76.0, scale: 1.1}
+    weight: {ref_height: 76.0, at_ref: 305, lbs_per_inch: 5.73, sd: 16.9}
+    ethnicity: {Black: 0.32, White: 0.52, Hispanic: 0.06, Polynesian: 0.095, Asian: 0.005}
+    roles: {run_block: "core", pass_block: "core"}
+    overrides: {LBK: "minor"}
+    body: {SPD: 56, ACC: 67, AGI: 52, COD: 44, STR: 82, JMP: 52, STA: 80, AWR: 46, PRC: 20}
+    ovr_body: {STR: 2, AGI: 0.4, ACC: 0.4, AWR: 1}
+    archetypes: {"Raw Strength": 0.34, "Pass Protector": 0.22, Agile: 0.2, "Well Rounded": 0.24}
+  C:   # Center
+    share: 0.0156
+    elite_tilt: -0.5
+    height: {distribution: normal, loc: 75.5, scale: 1.1}
+    weight: {ref_height: 75.5, at_ref: 292, lbs_per_inch: 5.09, sd: 15.0}
+    ethnicity: {Black: 0.18, White: 0.67, Hispanic: 0.06, Polynesian: 0.085, Asian: 0.005}
+    roles: {run_block: "core", pass_block: "core"}
+    overrides: {LBK: "minor"}
+    body: {SPD: 55, ACC: 67, AGI: 54, COD: 46, STR: 80, JMP: 52, STA: 80, AWR: 50, PRC: 20}
+    ovr_body: {STR: 2, AGI: 0.4, AWR: 1.5}
+    archetypes: {"Well Rounded": 0.34, Agile: 0.24, "Raw Strength": 0.24, "Pass Protector": 0.18}
+  EDGE:   # Edge Rusher (DE)
+    share: 0.0935
+    height: {distribution: normal, loc: 76.0, scale: 1.5}
+    weight: {ref_height: 76.0, at_ref: 245, lbs_per_inch: 5.4, sd: 16.1}
+    ethnicity: {Black: 0.8, White: 0.12, Hispanic: 0.02, Polynesian: 0.055, Asian: 0.005}
+    roles: {pass_rush: "core", tackling: "major", coverage: "low"}
+    body: {SPD: 77, ACC: 82, AGI: 72, COD: 64, STR: 72, JMP: 76, STA: 83, AWR: 45, PRC: 48}
+    ovr_body: {SPD: 1, ACC: 1.5, STR: 1.2, PRC: 1, AWR: 0.6}
+    archetypes: {"Speed Rusher": 0.38, "Power Rusher": 0.34, "Edge Setter": 0.28}
+  DT:   # Defensive Tackle
+    share: 0.0727
+    height: {distribution: normal, loc: 75.2, scale: 1.4}
+    weight: {ref_height: 75.2, at_ref: 292, lbs_per_inch: 5.5, sd: 20.6}
+    ethnicity: {Black: 0.72, White: 0.12, Hispanic: 0.04, Polynesian: 0.115, Asian: 0.005}
+    roles: {pass_rush: "core", tackling: "major", coverage: "none"}
+    body: {SPD: 66, ACC: 77, AGI: 60, COD: 50, STR: 82, JMP: 64, STA: 80, AWR: 45, PRC: 48}
+    ovr_body: {STR: 2, ACC: 1, PRC: 1, AWR: 0.6}
+    archetypes: {"Gap Specialist": 0.3, "Power Rusher": 0.28, "Pure Power": 0.24, "Speed Rusher": 0.18}
+  LB:   # Linebacker
+    share: 0.0935
+    height: {distribution: normal, loc: 73.6, scale: 1.4}
+    weight: {ref_height: 73.6, at_ref: 222, lbs_per_inch: 4.29, sd: 10.4}
+    ethnicity: {Black: 0.68, White: 0.22, Hispanic: 0.03, Polynesian: 0.065, Asian: 0.005}
+    roles: {tackling: "core", coverage: "major", pass_rush: "minor"}
+    overrides: {BSH: "major", PRS: "minor"}
+    body: {SPD: 80, ACC: 84, AGI: 74, COD: 68, STR: 68, JMP: 74, STA: 85, AWR: 46, PRC: 50}
+    ovr_body: {SPD: 1, ACC: 0.8, PRC: 1.5, AWR: 1}
+    archetypes: {Thumper: 0.32, "Signal Caller": 0.3, Lurker: 0.38}
+  CB:   # Cornerback
+    share: 0.1246
+    height: {distribution: normal, loc: 71.6, scale: 1.6}
+    weight: {ref_height: 71.6, at_ref: 178, lbs_per_inch: 3.78, sd: 9.2}
+    ethnicity: {Black: 0.935, White: 0.045, Hispanic: 0.015, Polynesian: 0.004, Asian: 0.001}
+    roles: {coverage: "core", tackling: "minor", receiving: "low", returning: "major"}
+    overrides: {CTH: "minor"}
+    body: {SPD: 87, ACC: 88, AGI: 85, COD: 83, STR: 46, JMP: 86, STA: 85, AWR: 45, PRC: 48}
+    ovr_body: {SPD: 2, ACC: 1, AGI: 0.8, COD: 0.8, PRC: 0.8, AWR: 0.8}
+    archetypes: {Boundary: 0.26, "Bump and Run": 0.24, Field: 0.26, Zone: 0.24}
+  S:   # Safety
+    share: 0.0831
+    height: {distribution: normal, loc: 72.5, scale: 1.5}
+    weight: {ref_height: 72.5, at_ref: 192, lbs_per_inch: 3.67, sd: 9.5}
+    ethnicity: {Black: 0.8, White: 0.16, Hispanic: 0.025, Polynesian: 0.012, Asian: 0.003}
+    roles: {coverage: "core", tackling: "major", receiving: "low", returning: "minor"}
+    overrides: {CTH: "minor"}
+    body: {SPD: 85, ACC: 86, AGI: 81, COD: 77, STR: 54, JMP: 82, STA: 85, AWR: 46, PRC: 50}
+    ovr_body: {SPD: 1.5, ACC: 0.8, PRC: 1.2, AWR: 1}
+    archetypes: {"Box Specialist": 0.32, "Coverage Specialist": 0.34, Hybrid: 0.34}
+  ATH:   # Athlete
+    share: 0.0415
+    height: {distribution: normal, loc: 72.0, scale: 2.2}
+    weight: {ref_height: 72.0, at_ref: 190, lbs_per_inch: 3.75, sd: 12.5}
+    ethnicity: {Black: 0.88, White: 0.09, Hispanic: 0.02, Polynesian: 0.008, Asian: 0.002}
+    roles: {receiving: "core", carrying: "major", coverage: "minor", tackling: "low", returning: "major"}
+    body: {SPD: 86, ACC: 87, AGI: 83, COD: 80, STR: 54, JMP: 84, STA: 86, AWR: 45, PRC: 38}
+    ovr_body: {SPD: 2, ACC: 1.2, AGI: 1, COD: 0.8, AWR: 0.6}
+    archetypes: {"Offensive Weapon": 0.4, "Defensive Weapon": 0.35, "QB Convert": 0.25}
+  K:   # Kicker
+    share: 0.0104
+    elite_tilt: -1.6
+    height: {distribution: normal, loc: 72.0, scale: 2.2}
+    weight: {ref_height: 72.0, at_ref: 185, lbs_per_inch: 3.41, sd: 13.0}
+    ethnicity: {Black: 0.03, White: 0.82, Hispanic: 0.1, Polynesian: 0.01, Asian: 0.04}
+    roles: {kicking: "core"}
+    body: {SPD: 58, ACC: 62, AGI: 56, COD: 50, STR: 40, JMP: 52, STA: 75, AWR: 50, PRC: 15}
+    ovr_body: {AWR: 0.5}
+    archetypes: {Accurate: 0.5, Power: 0.5}
+  P:   # Punter
+    share: 0.0083
+    elite_tilt: -1.6
+    height: {distribution: normal, loc: 74.0, scale: 2.0}
+    weight: {ref_height: 74.0, at_ref: 195, lbs_per_inch: 4.0, sd: 13.9}
+    ethnicity: {Black: 0.02, White: 0.88, Hispanic: 0.06, Polynesian: 0.01, Asian: 0.03}
+    roles: {kicking: "core"}
+    body: {SPD: 58, ACC: 62, AGI: 56, COD: 50, STR: 42, JMP: 52, STA: 75, AWR: 50, PRC: 15}
+    ovr_body: {AWR: 0.5}
+    archetypes: {Accurate: 0.5, Power: 0.5}
+    origin_override: {rate: 0.3, countries: {AUS: 1}}
+
+# Talent and rankings (football ranks far more players than basketball).
+talent:
+  international_error_mult: 1.25
+  population: 250000
+  pool_size: 3500
+  scout_error: 0.25
+  stars:
+    - {stars: 5, last_rank: 32, rating: [100, 98]}
+    - {stars: 4, last_rank: 350, rating: [97, 90]}
+    - {stars: 3, last_rank: 2200, rating: [89, 80]}
+    - {stars: 2, last_rank: 3500, rating: [79, 70]}
+  verdicts:
+    steal: 4
+    underrated: 1.75
+    overrated: 1.75
+    bust: 4
+    min_gap: 5
+
+origins:
+  international_rate: 0.004
+  states: {TX: 14, FL: 13, GA: 9, CA: 9, LA: 4.2, AL: 4, OH: 4, NC: 3.5, SC: 2.6, TN: 2.6, MS: 2.5, VA: 2.5, MD: 2.4, PA: 2.4, NJ: 2, MI: 2, IL: 2, AZ: 1.6, OK: 1.3, AR: 1, KY: 0.9, MO: 1.2, IN: 1, WA: 1, UT: 1, HI: 0.6, NV: 1, CO: 0.8, KS: 0.5, OR: 0.6, MN: 0.6, WI: 0.6, IA: 0.5, NE: 0.4, DC: 0.6, NY: 1, MA: 0.5, CT: 0.4, DE: 0.3, WV: 0.3, NM: 0.3, ID: 0.2, AS: 0.15, AK: 0.05, ME: 0.05, NH: 0.05, VT: 0.02, MT: 0.1, ND: 0.08, SD: 0.08, WY: 0.05, RI: 0.1}
+  countries: {CAN: 0.6, AUS: 0.2, NGA: 0.1, DEU: 0.1}
+
+# National prep programs (far less common in football than basketball).
+prep:
+  rate: 0.05
+  star_boost: {5: 2.5, 4: 1.5, 3: 0.8, 2: 0.4}
+  international_rate: 0.3
+  schools: {"IMG Academy (Bradenton, FL)": 3, "Mater Dei (Santa Ana, CA)": 2, "St. John Bosco (Bellflower, CA)": 2, "St. Thomas Aquinas (Fort Lauderdale, FL)": 2, "Bishop Gorman (Las Vegas, NV)": 1, "St. Frances Academy (Baltimore, MD)": 1, "Duncanville (Duncanville, TX)": 1, "Buford (Buford, GA)": 1, "Grayson (Loganville, GA)": 1, "Hoover (Hoover, AL)": 1, "Thompson (Alabaster, AL)": 1, "Chandler (Chandler, AZ)": 1, "St. Joseph's Prep (Philadelphia, PA)": 1, "Kahuku (Kahuku, HI)": 1, "Mililani (Mililani, HI)": 1}
+
+development:
+  gap_spread: 0.3
+  trajectories:
+    "Early Bloomer":  {weight: 0.22, gap: 0.20, bias: 0.5,   noise: 0.0,  growth: "Low"}
+    "Steady Climber": {weight: 0.45, gap: 0.55, bias: 0.0,   noise: 0.0,  growth: "Medium"}
+    "Late Bloomer":   {weight: 0.22, gap: 0.95, bias: -0.5,  noise: 0.15, growth: "High"}
+    "Raw Project":    {weight: 0.11, gap: 1.30, bias: -0.15, noise: 0.3,  growth: "Very High"}
+
+# College Football / Madden dev traits, from TRUE talent (plus a little noise).
+# Each trait needs at least this talent score (0 = typical ranked recruit). Checked top-down.
+dev_traits:
+  noise: 0.25
+  levels: {Elite: 2.55, Star: 1.85, Impact: 1.05, Normal: -99}
+
+ratings:
+  default_role: none    # skills a position never uses (a tackle's kicking) sit at the bottom
+  min: 12
+  max: 99
+  levels: {core: [62, 4.8], major: [52, 4.3], minor: [41, 3.6], low: [28, 2.6], none: [16, 2.0]}
+  group_spread: 3.0
+  attr_noise: 2.4
+  ovr_weights: {core: 3, major: 1.2, minor: 0.3, low: 0, none: 0}
+  potential: {center: 70, per_sd: 6.5, noise: 1.5, min: 55, max: 97}
+  athletic_from_talent: 0.25
+
+# 40-yard dash, worked out from a speed rating:
+#   time = at_95 + (95 - rating) x per_point (+ noise), kept between min and max
+forty: {rating: SPD, at_95: 4.35, per_point: 0.0215, noise: 0.03, min: 4.22, max: 5.9}
+
+# Attributes use the College Football / Madden edit-screen abbreviations.
+attributes:
+  order: ["SPD", "ACC", "AGI", "COD", "STR", "JMP", "STA", "TGH", "INJ", "AWR", "PRC", "THP", "SAC", "MAC", "DAC", "TOR", "TUP", "BSK", "PAC", "CAR", "BCV", "BTK", "TRK", "SFA", "SPM", "JKM", "CTH", "SPC", "CIT", "SRR", "MRR", "DRR", "RLS", "RBK", "RBP", "RBF", "IBL", "LBK", "PBK", "PBP", "PBF", "PMV", "FMV", "BSH", "TAK", "HPW", "PUR", "MCV", "ZCV", "PRS", "KPW", "KAC", "RET"]
+  groups:
+    passing: ["THP", "SAC", "MAC", "DAC", "TOR", "TUP", "BSK", "PAC"]
+    carrying: ["CAR", "BCV", "BTK", "TRK", "SFA", "SPM", "JKM"]
+    receiving: ["CTH", "SPC", "CIT", "SRR", "MRR", "DRR", "RLS"]
+    run_block: ["RBK", "RBP", "RBF", "IBL", "LBK"]
+    pass_block: ["PBK", "PBP", "PBF"]
+    pass_rush: ["PMV", "FMV", "BSH"]
+    tackling: ["TAK", "HPW", "PUR"]
+    coverage: ["MCV", "ZCV", "PRS"]
+    kicking: ["KPW", "KAC"]
+    returning: ["RET"]
+  body:
+    SPD: {athletic: 3.5, weight: -1.8, talent: 1.8}
+    ACC: {athletic: 3, weight: -1.2, talent: 1.8}
+    AGI: {athletic: 3, height: -1, weight: -1, talent: 1.5}
+    COD: {athletic: 3, weight: -1.2, talent: 1.5}
+    STR: {athletic: 1, weight: 4.5, talent: 2}
+    JMP: {athletic: 3.5, height: 0.5, weight: -1, talent: 1.5}
+    STA: {athletic: 1, talent: 1}
+    AWR: {talent: 3.5}
+    PRC: {talent: 3.5}
+  fixed:
+    TGH: [82, 6]
+    INJ: [84, 6]
+
+archetypes:
+  "Pocket Passer":
+    mods: {SAC: 4, MAC: 5, DAC: 5, TUP: 4, THP: 2, TOR: -3, BSK: -2, CAR: -4, BCV: -4}
+    shift: {athletic: -0.6, height: 0.4}
+  "Dual Threat":
+    mods: {TOR: 6, BSK: 5, CAR: 8, BCV: 8, JKM: 6, DAC: -2}
+    shift: {athletic: 0.8, height: -0.3}
+  "Backfield Creator":
+    mods: {TOR: 5, PAC: 5, BSK: 4, SAC: 2}
+    shift: {athletic: 0.3}
+  "Pure Runner":
+    mods: {CAR: 10, BCV: 10, JKM: 8, BTK: 6, SAC: -5, DAC: -6, MAC: -4}
+    shift: {athletic: 1.2, height: -0.5}
+  "Elusive Back":
+    mods: {JKM: 8, SPM: 7, AGI: 4, COD: 4, TRK: -6, SFA: -3}
+    shift: {weight: -0.6, athletic: 0.4}
+  "Contact Seeker":
+    mods: {TRK: 9, BTK: 7, SFA: 6, STR: 4, JKM: -5, SPM: -3}
+    shift: {weight: 0.8}
+  "Backfield Threat":
+    mods: {CTH: 6, SRR: 6, MRR: 4, RLS: 4, BCV: 2}
+    shift: {weight: -0.3}
+  "Elusive Bruiser":
+    mods: {BTK: 5, JKM: 4, SFA: 4, TRK: 3, BCV: 2}
+  "Speedster":
+    mods: {SPD: 5, ACC: 4, DRR: 5, RLS: 3, CIT: -4}
+    shift: {athletic: 0.9, weight: -0.5}
+  "Route Artist":
+    mods: {SRR: 7, MRR: 7, DRR: 4, RLS: 5, CTH: 3}
+    shift: {athletic: -0.2}
+  "Physical Route Runner":
+    mods: {CIT: 6, SPC: 5, RLS: 5, MRR: 4, STR: 3}
+    shift: {height: 0.5, weight: 0.6}
+  "Contested Specialist":
+    mods: {SPC: 8, CIT: 8, JMP: 5, SPD: -2}
+    shift: {height: 0.9, weight: 0.5}
+  "Gadget":
+    mods: {JKM: 7, BCV: 6, RET: 8, CAR: 4, SRR: 2, CIT: -4}
+    shift: {height: -0.7, weight: -0.6, athletic: 0.5}
+  "Elusive Route Runner":
+    mods: {SRR: 6, JKM: 5, AGI: 4, COD: 4, RLS: 3}
+    shift: {height: -0.4}
+  "Vertical Threat":
+    mods: {DRR: 6, SPC: 5, SPD: 4, RBK: -5, RBP: -4}
+    shift: {weight: -0.5, athletic: 0.6}
+  "Possession":
+    mods: {CTH: 6, CIT: 6, SRR: 5, MRR: 3}
+  "Pure Blocker":
+    mods: {RBK: 8, PBK: 6, RBP: 7, IBL: 6, SRR: -5, DRR: -6}
+    shift: {weight: 0.8, athletic: -0.5}
+  "Pass Protector":
+    mods: {PBK: 6, PBF: 7, PBP: 4, AGI: 2}
+    shift: {height: 0.4}
+  "Raw Strength":
+    mods: {RBP: 7, PBP: 6, STR: 6, IBL: 5, PBF: -3}
+    shift: {weight: 0.7}
+  "Agile":
+    mods: {RBF: 6, PBF: 5, AGI: 4, SPD: 3, LBK: 5}
+    shift: {weight: -0.5, athletic: 0.5}
+  "Well Rounded":
+    mods: {RBK: 3, PBK: 3, AWR: 2}
+  "Speed Rusher":
+    mods: {FMV: 9, ACC: 4, SPD: 4, PMV: -3, BSH: -3}
+    shift: {weight: -0.7, athletic: 0.8}
+  "Power Rusher":
+    mods: {PMV: 9, STR: 5, BSH: 3, FMV: -3}
+    shift: {weight: 0.6}
+  "Edge Setter":
+    mods: {BSH: 8, TAK: 5, PRC: 3, FMV: -4}
+    shift: {weight: 0.4}
+  "Gap Specialist":
+    mods: {FMV: 5, ACC: 4, BSH: 3}
+    shift: {weight: -0.5, athletic: 0.4}
+  "Pure Power":
+    mods: {STR: 7, BSH: 7, PMV: 3, SPD: -3}
+    shift: {weight: 1}
+  "Thumper":
+    mods: {HPW: 8, TAK: 6, BSH: 5, STR: 3, ZCV: -4, MCV: -4}
+    shift: {weight: 0.6}
+  "Signal Caller":
+    mods: {PRC: 7, AWR: 5, ZCV: 3, TAK: 3}
+  "Lurker":
+    mods: {ZCV: 7, MCV: 5, SPD: 3, PUR: 4, BSH: -3}
+    shift: {weight: -0.5, athletic: 0.5}
+  "Boundary":
+    mods: {PRS: 7, MCV: 4, STR: 3, HPW: 2}
+    shift: {height: 0.6}
+  "Bump and Run":
+    mods: {PRS: 8, MCV: 6, ZCV: -3}
+  "Field":
+    mods: {SPD: 3, AGI: 4, COD: 5, MCV: 3}
+    shift: {height: -0.5, athletic: 0.4}
+  "Zone":
+    mods: {ZCV: 8, PRC: 4, CTH: 3, MCV: -3}
+  "Box Specialist":
+    mods: {TAK: 6, HPW: 7, BSH: 5, PUR: 3, MCV: -4}
+    shift: {weight: 0.6}
+  "Coverage Specialist":
+    mods: {ZCV: 6, MCV: 5, CTH: 3, SPD: 2}
+    shift: {weight: -0.4}
+  "Hybrid":
+    mods: {TAK: 3, ZCV: 3, MCV: 2, PUR: 3}
+  "Offensive Weapon":
+    mods: {CTH: 5, BCV: 5, JKM: 5, RET: 5, SRR: 3}
+    shift: {athletic: 0.3}
+  "Defensive Weapon":
+    mods: {MCV: 6, ZCV: 5, TAK: 5, PUR: 4, CTH: -3}
+  "QB Convert":
+    mods: {THP: 30, SAC: 26, MAC: 22, DAC: 18, TOR: 22, BSK: 14, CAR: 4}
+    shift: {athletic: 0.3}
+  "Accurate":
+    mods: {KAC: 8, KPW: -2}
+  "Power":
+    mods: {KPW: 8, KAC: -3}
+
+# Clean-up check: believable size by position (real-world extremes for recruits).
+checks:
+  max_reject_share: 0.05
+  always_allow: 2
+  max_rebuilds: 5
+  body:
+    QB:   {height: [68, 80], weight: [160, 250]}
+    RB:   {height: [65, 76], weight: [160, 245]}
+    WR:   {height: [65, 80], weight: [145, 230]}
+    TE:   {height: [72, 81], weight: [200, 285]}
+    OT:   {height: [74, 82], weight: [250, 370]}
+    OG:   {height: [72, 80], weight: [255, 370]}
+    C:    {height: [71, 79], weight: [250, 345]}
+    EDGE: {height: [72, 81], weight: [200, 300]}
+    DT:   {height: [71, 80], weight: [240, 370]}
+    LB:   {height: [69, 78], weight: [190, 260]}
+    CB:   {height: [66, 77], weight: [150, 215]}
+    S:    {height: [68, 78], weight: [165, 230]}
+    ATH:  {height: [66, 79], weight: [155, 235]}
+    K:    {height: [66, 78], weight: [150, 230]}
+    P:    {height: [68, 80], weight: [160, 240]}
+
+# Position groups you can type instead of exact positions.
+position_groups:
+  OL: [OT, OG, C]
+  IOL: [OG, C]
+  OT: [OT]
+  tackle: [OT]
+  guard: [OG]
+  DL: [EDGE, DT]
+  DE: [EDGE]
+  NT: [DT]
+  DB: [CB, S]
+  FS: [S]
+  SS: [S]
+  HB: [RB]
+  receiver: [WR]
+  quarterback: [QB]
+  running back: [RB]
+  tight end: [TE]
+  linebacker: [LB]
+  MLB: [LB]
+  OLB: [LB]
+  cornerback: [CB]
+  safety: [S]
+  kicker: [K]
+  punter: [P]
+  athlete: [ATH]
+  specialist: [K, P]
+  skill: [RB, WR, TE]
+  front seven: [EDGE, DT, LB]

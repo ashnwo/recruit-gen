@@ -59,13 +59,13 @@ def test_international_needs_countries(basketball):
 
 # ---- origins stage ----------------------------------------------------------------
 def test_international_share_matches_config(basketball):
-    out = origins([{} for _ in range(20_000)], np.random.default_rng(2), basketball)
+    out = origins([{"position": "SF"} for _ in range(20_000)], np.random.default_rng(2), basketball)
     share = sum(r["international"] for r in out) / len(out)
     assert abs(share - basketball.origins.international_rate) < 0.015
 
 
 def test_hotbed_states_produce_the_most(basketball):
-    out = origins([{} for _ in range(20_000)], np.random.default_rng(3), basketball)
+    out = origins([{"position": "SF"} for _ in range(20_000)], np.random.default_rng(3), basketball)
     counts = Counter(r["origin"] for r in out if not r["international"])
     top3 = [code for code, _ in counts.most_common(3)]
     biggest = sorted(basketball.origins.states, key=basketball.origins.states.get, reverse=True)[:3]
@@ -74,7 +74,7 @@ def test_hotbed_states_produce_the_most(basketball):
 
 
 def test_hometown_is_a_real_city_in_that_place(basketball):
-    for r in origins([{} for _ in range(2_000)], np.random.default_rng(4), basketball):
+    for r in origins([{"position": "SF"} for _ in range(2_000)], np.random.default_rng(4), basketball):
         places = basketball.places
         info = places.countries[r["origin"]] if r["international"] else places.states[r["origin"]]
         assert r["city"] in info.cities
@@ -89,6 +89,14 @@ def test_us_ethnicity_mix_is_realistic(basketball):
     total = sum(us.values())
     assert 0.70 < us["Black"] / total < 0.85
     assert 0.13 < us["White"] / total < 0.27
+
+
+def test_states_without_a_setting_use_the_default(basketball):
+    """Polynesian families are rare in most states (default 0.15x), common in a few."""
+    def poly_share(state):
+        out = force_origin(basketball, state, international=False, position="C", n=20000, seed=9)
+        return sum(r["ethnicity"] == "Polynesian" for r in out) / len(out)
+    assert poly_share("UT") > 10 * poly_share("FL")
 
 
 def test_hawaii_leans_polynesian(basketball):

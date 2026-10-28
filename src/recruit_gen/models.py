@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, TypeAdapter, field_validator, model_valid
 
 Ethnicity = Literal["Black", "White", "Hispanic", "Asian", "Polynesian"]
 ETHNICITIES: tuple[str, ...] = Ethnicity.__args__
-Role = Literal["core", "major", "minor", "low"]   # how important a skill group is at a position
+Role = Literal["core", "major", "minor", "low", "none"]   # how important a skill group is at a position
 Weight = Annotated[float, Field(gt=0)]          # a relative weight: any positive number
 Share = Annotated[float, Field(ge=0, le=1)]     # a fraction from 0 to 1
 
@@ -35,7 +35,8 @@ class Recruit(BaseModel):
     pos_rank: int = Field(ge=1)          # rank among this class's players at his position
     archetype: str
     ovr: Rating                          # current overall
-    potential: Rating                    # 2K "Potential": his ceiling
+    potential: Rating                    # "Potential": his ceiling
+    dev_trait: str = ""                  # Normal / Impact / Star / Elite (sports that use them)
     development: str                     # Early Bloomer / Steady Climber / Late Bloomer / Raw Project
     growth: str                          # Low / Medium / High / Very High
     height: int = Field(ge=60, le=96)    # inches; outside 5'0"-8'0" = something broke
@@ -43,6 +44,7 @@ class Recruit(BaseModel):
     weight: int = Field(ge=100, le=400)  # lbs; outside this = something broke
     wingspan: Optional[float] = Field(default=None, ge=60, le=104)   # inches
     wingspan_ft: str = ""
+    forty: Optional[float] = Field(default=None, ge=4.0, le=7.0)   # 40-yard dash (sports that use it)
     ethnicity: Ethnicity
     hometown: str                        # "Atlanta, GA" or "Lagos, Nigeria"
     origin: str                          # state code (GA) or country code (NGA)
@@ -98,6 +100,13 @@ class WeightParams(BaseModel):
     sd: float = Field(gt=0)
 
 
+class OriginOverride(BaseModel):
+    """rate of players at this position come from these places instead (Australian punters)."""
+    rate: Share
+    states: dict[str, Weight] = {}
+    countries: dict[str, Weight] = {}
+
+
 class PositionConfig(BaseModel):
     share: float = Field(gt=0, le=1)
     height: PhysicalsConfig
@@ -110,6 +119,8 @@ class PositionConfig(BaseModel):
     body: dict[str, float] = {}          # body rating starting points
     ovr_body: dict[str, Annotated[float, Field(ge=0)]] = {}
     archetypes: dict[str, Weight] = {}
+    elite_tilt: float = Field(default=0.0, le=0)   # below 0 = rarely ranked near the top
+    origin_override: Optional["OriginOverride"] = None   # some positions come from special places
 
     @field_validator("ethnicity")
     @classmethod
@@ -150,6 +161,7 @@ class SchoolNames(BaseModel):
 
 
 class PlacesData(BaseModel):
+    default_eth_mult: dict[Ethnicity, Annotated[float, Field(ge=0)]] = {}   # for states that don't say
     states: dict[str, StateInfo] = Field(min_length=1)
     countries: dict[str, CountryInfo] = {}
     schools: SchoolNames
@@ -323,6 +335,7 @@ class PotentialRules(BaseModel):
 
 
 class RatingsConfig(BaseModel):
+    default_role: Role = "low"           # role for skill groups a position doesn't list
     min: int = Field(ge=1)
     max: int = Field(le=99)
     levels: dict[Role, tuple[float, Annotated[float, Field(ge=0)]]]   # role -> [middle, spread]
@@ -331,6 +344,22 @@ class RatingsConfig(BaseModel):
     ovr_weights: dict[Role, Annotated[float, Field(ge=0)]]
     potential: PotentialRules
     athletic_from_talent: float = Field(ge=0, lt=1)
+
+
+class DevTraitsConfig(BaseModel):
+    """Trait levels from TRUE talent (+ noise), checked top-down: first one he reaches."""
+    noise: float = Field(ge=0)
+    levels: dict[str, float] = Field(min_length=1)
+
+
+class FortyConfig(BaseModel):
+    """40-yard dash from a speed rating: at_95 + (95 - rating) x per_point (+ noise)."""
+    rating: str
+    at_95: float
+    per_point: float
+    noise: float = Field(ge=0)
+    min: float
+    max: float
 
 
 class BodyLoad(BaseModel):
@@ -398,6 +427,8 @@ class SportConfig(BaseModel):
     archetypes: dict[str, ArchetypeConfig] = {}
     checks: Optional[ChecksConfig] = None
     position_groups: dict[str, list[str]] = {}   # words you can type for --position (guard, big...)
+    dev_traits: Optional[DevTraitsConfig] = None
+    forty: Optional[FortyConfig] = None
 
     @model_validator(mode="after")
     def rating_names_line_up(self):
@@ -408,6 +439,13 @@ class SportConfig(BaseModel):
             problems += [f"checks body position '{x}'" for x in self.checks.body if x not in self.positions]
         for group, members in self.position_groups.items():
             problems += [f"position group {group} '{x}'" for x in members if x not in self.positions]
+        for pos, p in self.positions.items():
+            ov = p.origin_override
+            if ov is not None:
+                problems += [f"{pos} origin_override '{x}'" for x in ov.states if x not in self.places.states]
+                problems += [f"{pos} origin_override '{x}'" for x in ov.countries if x not in self.places.countries]
+        if self.forty is not None and self.attributes is not None and self.forty.rating not in self.attributes.order:
+            problems.append(f"forty rating '{self.forty.rating}'")
         for pos, p in self.positions.items():
             problems += [f"{pos} secondary '{x}'" for x in p.secondary if x not in known_pos]
             problems += [f"{pos} archetype '{x}'" for x in p.archetypes if x not in self.archetypes]
@@ -450,3 +488,6 @@ class SportConfig(BaseModel):
         if abs(total - 1.0) > 0.01:
             raise ValueError(f"position shares add up to {total:.2f}; they must add up to 1")
         return self
+
+
+PositionConfig.model_rebuild()

@@ -4,10 +4,15 @@
 #            City weights = roughly how many recruits come from there (bigger
 #            metros and known hotbeds weigh more). eth_mult nudges a state's
 #            ethnicity odds, e.g. Hawaii and Utah produce far more Polynesian players.
+# default_eth_mult: nudge for states that don't list a group themselves. Polynesian
+#            families are concentrated in a few Western states (and Texas), so most
+#            states sit well below the national rate (Census: ~0.1-0.3x).
 # countries: name, cities, ethnicity {group: share of that country's recruits},
 #            name_pools {group: {pool: weight}} - us_black/us_white/us_hispanic/us_asian
 #            use the big US tables; any other pool is in names/names.yaml
 # schools:   patterns for made-up high school names
+
+default_eth_mult: {Polynesian: 0.15}
 
 states:
   AL:
@@ -168,7 +173,7 @@ states:
   TX:
     name: "Texas"
     cities: {Houston: 12, Dallas: 9, "San Antonio": 7, Austin: 5, "Fort Worth": 6, Arlington: 3, Katy: 3, Allen: 2, Duncanville: 3, "Cedar Hill": 2, DeSoto: 3, Lancaster: 2, Mansfield: 2, Southlake: 2, Euless: 2, Denton: 2, Frisco: 3, McKinney: 2, Plano: 2, Garland: 2, Mesquite: 2, Waco: 2, Tyler: 2, Longview: 2, Lufkin: 1, Beaumont: 2, "Port Arthur": 1, "Corpus Christi": 2, Killeen: 2, Temple: 1, "Round Rock": 2, Pflugerville: 2, Cypress: 2, Humble: 2, Spring: 2, Pearland: 2, "Missouri City": 2, "Sugar Land": 2, "College Station": 1, Bryan: 1, Lubbock: 2, Amarillo: 1, "El Paso": 2, Midland: 1, Odessa: 1, Abilene: 1, "Wichita Falls": 1, Conroe: 2, Kilgore: 1, Marshall: 1, Texarkana: 1, "Little Elm": 1, Prosper: 1, Rockwall: 1, Converse: 1, Laredo: 1, Brownsville: 1, McAllen: 1, Carthage: 1, Aledo: 1, "North Richland Hills": 1}
-    eth_mult: {Hispanic: 1.7}
+    eth_mult: {Hispanic: 1.7, Polynesian: 0.6}
   UT:
     name: "Utah"
     cities: {"Salt Lake City": 5, "West Jordan": 2, Provo: 2, Orem: 2, Sandy: 2, "St. George": 2, Ogden: 2, Draper: 1, "South Jordan": 1, Lehi: 1, "American Fork": 1, Kearns: 1, "West Valley City": 2}

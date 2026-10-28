@@ -96,44 +96,72 @@ def class_shape(count: int, rng, config: SportConfig, top: bool = False,
             for r in ranks]
 
 
+def scout_index(r: dict, config: SportConfig) -> float:
+    """His scouted rank as a bell-curve score among ranked recruits (+3 = the very top)."""
+    t = config.talent
+    return float(norm.isf(min(max((r["rank"] - 0.5) / t.pool_size, 1e-6), 1 - 1e-6)))
+
+
+def fits_rank(position: str, r: dict, rng, config: SportConfig) -> bool:
+    """Elite tilt: some positions rarely rank near the top (kickers are almost never
+    5-stars). Near the top, a tilted position is accepted only part of the time."""
+    tilt = config.positions[position].elite_tilt
+    return tilt >= 0 or rng.random() < math.exp(tilt * max(scout_index(r, config), 0.0))
+
+
+def positions(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
+    """Weighted draw: each position comes up about as often as its share says
+    (less often near the top for positions with an elite tilt).
+    Players with identity locks get position AND home drawn together from the
+    locks' joint table, so the combination is realistic."""
+    picker = WeightedPicker({p: c.share for p, c in config.positions.items()})
+    joint_pickers: dict[Locks, WeightedPicker] = {}
+    for r in recruits:
+        lk = locks_of(r)
+        if lk.shapes_identity and lk not in joint_pickers:
+            joint_pickers[lk] = WeightedPicker(joint_table(lk, config))
+        for _ in range(50):
+            if lk.shapes_identity:
+                code, international, pos = joint_pickers[lk].pick(rng)
+            else:
+                pos = picker.pick(rng)
+            if fits_rank(pos, r, rng, config):
+                break
+        r["position"] = pos
+        if lk.shapes_identity:
+            r["origin"], r["international"] = code, international   # origins stage keeps these
+    return recruits
+
+
 def origins(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
     """Where each player is from: international or not, then the state/country
     (weighted by how many recruits it produces), then a hometown in it.
-    Players with identity locks get home AND position drawn together from the
-    locks' joint table, so the combination is realistic."""
+    Runs after positions, because some positions come from special places
+    (origin_override, e.g. Australian punters)."""
     o, places = config.origins, config.places
     state_picker = WeightedPicker(o.states)
     country_picker = WeightedPicker(o.countries) if o.countries else None
-    joint_pickers: dict[Locks, WeightedPicker] = {}
+    override_pickers: dict[str, WeightedPicker] = {}
     city_pickers: dict[str, WeightedPicker] = {}
     for r in recruits:
-        lk = locks_of(r)
-        if lk.shapes_identity:
-            if lk not in joint_pickers:
-                joint_pickers[lk] = WeightedPicker(joint_table(lk, config))
-            code, international, pos = joint_pickers[lk].pick(rng)
-            r["position"] = pos                  # positions stage keeps this
-        else:
-            international = country_picker is not None and rng.random() < o.international_rate
-            code = (country_picker if international else state_picker).pick(rng)
+        if "origin" not in r:
+            ov = config.positions[r["position"]].origin_override
+            if ov and rng.random() < ov.rate:
+                if r["position"] not in override_pickers:
+                    override_pickers[r["position"]] = WeightedPicker(
+                        {(c, False): w for c, w in ov.states.items()} | {(c, True): w for c, w in ov.countries.items()})
+                r["origin"], r["international"] = override_pickers[r["position"]].pick(rng)
+            else:
+                international = country_picker is not None and rng.random() < o.international_rate
+                r["origin"] = (country_picker if international else state_picker).pick(rng)
+                r["international"] = international
+        code, international = r["origin"], r["international"]   # "international" = working value
         info = places.countries[code] if international else places.states[code]
         if code not in city_pickers:
             city_pickers[code] = WeightedPicker(info.cities)
         city = city_pickers[code].pick(rng)
-        r["origin"] = code
-        r["international"] = international   # working value, not in the CSV
         r["city"] = city                     # working value, not in the CSV
         r["hometown"] = f"{city}, {info.name}" if international else f"{city}, {code}"
-    return recruits
-
-
-def positions(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
-    """Weighted draw: each position comes up about as often as its share says.
-    (Players whose position was already set by their locks keep it.)"""
-    picker = WeightedPicker({p: c.share for p, c in config.positions.items()})
-    for r in recruits:
-        if "position" not in r:
-            r["position"] = picker.pick(rng)
     return recruits
 
 

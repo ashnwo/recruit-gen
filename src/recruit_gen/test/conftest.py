@@ -13,6 +13,12 @@ def basketball():
 
 
 @pytest.fixture(scope="session")
+def football():
+    """Your real configs/football.yaml, loaded once for the whole test run."""
+    return load_sport_config(find_config("football"))
+
+
+@pytest.fixture(scope="session")
 def book(basketball):
     """The loaded name tables for basketball's name settings."""
     return name_book(basketball.names)

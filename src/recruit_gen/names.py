@@ -176,7 +176,9 @@ class NameBook:
         if kind == "heritage":
             # Table weight, but squeezed between 30 and 300 so a hugely common name
             # (Samuel, Emmanuel) can't crowd out the rest of the list.
-            for name in self.heritage_first[extra]:
+            # sorted(): a set's order changes every time Python starts, which would
+            # make the same --seed give a different class on the next run.
+            for name in sorted(self.heritage_first[extra]):
                 in_table = name in self.first_rows and g
                 w = self._first_weight(name, g, False) if in_table else 30.0
                 weights[name] = min(max(w, 30.0), 300.0)

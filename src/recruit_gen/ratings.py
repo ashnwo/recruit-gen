@@ -74,7 +74,7 @@ def rate(r: dict, rng, config: SportConfig) -> None:
             v = rng.normal(mu, sd)
         else:
             group = group_of[attr]
-            role = pos.overrides.get(attr, pos.roles.get(group, "low"))
+            role = pos.overrides.get(attr, pos.roles.get(group, rc.default_role))
             middle, spread = rc.levels[role]
             v = middle + spread * current + group_bonus[group] + rng.normal(0, rc.attr_noise)
         v += mods.get(attr, 0.0)
@@ -85,7 +85,7 @@ def rate(r: dict, rng, config: SportConfig) -> None:
     num = den = 0.0
     for attr, v in out.items():
         if attr in group_of:
-            w = rc.ovr_weights.get(pos.overrides.get(attr, pos.roles.get(group_of[attr], "low")), 0.0)
+            w = rc.ovr_weights.get(pos.overrides.get(attr, pos.roles.get(group_of[attr], rc.default_role)), 0.0)
         else:
             w = pos.ovr_body.get(attr, 0.0)
         num += w * v
@@ -96,3 +96,13 @@ def rate(r: dict, rng, config: SportConfig) -> None:
     pot = p.center + p.per_sd * true_t + rng.normal(0, p.noise)
     pot = int(round(min(max(pot, p.min), p.max)))
     r["potential"] = max(pot, min(r["ovr"] + 1, rc.max))     # ceiling is never below current
+
+    if config.dev_traits is not None:        # e.g. College Football: Normal / Impact / Star / Elite
+        dv = config.dev_traits
+        score = true_t + rng.normal(0, dv.noise)
+        r["dev_trait"] = next((name for name, need in dv.levels.items() if score >= need),
+                              list(dv.levels)[-1])
+    if config.forty is not None:             # 40-yard dash from the speed rating
+        f = config.forty
+        t = f.at_95 + (95 - out[f.rating]) * f.per_point + rng.normal(0, f.noise)
+        r["forty"] = round(min(max(t, f.min), f.max), 2)

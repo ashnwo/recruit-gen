@@ -211,14 +211,17 @@ def ethnicity_mix_for(position: str, origin: str, international: bool, config: S
     else:
         pos_mix = config.positions[position].ethnicity
         nudge = places.states[origin].eth_mult
-        mix = {e: pos_mix.get(e, 0.0) * nudge.get(e, 1.0) for e in ETHNICITIES}
+        default = places.default_eth_mult
+        mix = {e: pos_mix.get(e, 0.0) * nudge.get(e, default.get(e, 1.0)) for e in ETHNICITIES}
     total = sum(mix.values())
     return {e: v / total for e, v in mix.items()} if total else mix
 
 
-def origin_odds(config: SportConfig, locked: Optional[str] = None) -> dict[tuple[str, bool], float]:
-    """Chance of each home (code, international?). A locked home not in the sport's
-    list still works: it's simply the only option."""
+def origin_odds(config: SportConfig, locked: Optional[str] = None,
+                position: Optional[str] = None) -> dict[tuple[str, bool], float]:
+    """Chance of each home (code, international?), for a player at `position`.
+    A locked home not in the sport's list still works: it's simply the only option.
+    A position's origin_override mixes in its special places (Australian punters)."""
     o, places = config.origins, config.places
     if locked:
         return {(locked, locked in places.countries): 1.0}
@@ -228,6 +231,13 @@ def origin_odds(config: SportConfig, locked: Optional[str] = None) -> dict[tuple
         out[(code, False)] = (1 - o.international_rate) * w / st
     for code, w in o.countries.items():
         out[(code, True)] = o.international_rate * w / ct
+    ov = config.positions[position].origin_override if position else None
+    if ov:
+        special = {(c, False): w for c, w in ov.states.items()} | {(c, True): w for c, w in ov.countries.items()}
+        total = sum(special.values())
+        out = {k: v * (1 - ov.rate) for k, v in out.items()}
+        for k, w in special.items():
+            out[k] = out.get(k, 0.0) + ov.rate * w / total
     return out
 
 
@@ -250,9 +260,9 @@ def joint_table(locks: Locks, config: SportConfig) -> dict[tuple[str, bool, str]
         return _JOINT_CACHE[key][1]
     positions = locks.position or tuple(config.positions)
     table = {}
-    for (code, intl), p_origin in origin_odds(config, locks.origin).items():
-        for pos in positions:
-            pc = config.positions[pos]
+    for pos in positions:
+        pc = config.positions[pos]
+        for (code, intl), p_origin in origin_odds(config, locks.origin, pos).items():
             w = p_origin * pc.share
             if locks.ethnicity:
                 w *= ethnicity_mix_for(pos, code, intl, config).get(locks.ethnicity, 0.0)

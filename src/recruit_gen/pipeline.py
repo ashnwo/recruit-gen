@@ -11,7 +11,7 @@ from recruit_gen.stages import (
 
 # Stages that build one player at a time (the clean-up check reuses these to
 # build a replacement player for a failed rank).
-PLAYER_STAGES = [origins, positions, archetypes, physicals, development, talent, backgrounds, ratings]
+PLAYER_STAGES = [positions, origins, archetypes, physicals, development, talent, backgrounds, ratings]
 
 
 def build_board(specs: list[Spec], seed: int, config: SportConfig, top: bool = False,
@@ -26,7 +26,7 @@ def build_board(specs: list[Spec], seed: int, config: SportConfig, top: bool = F
         taken |= {r["rank"] for r in batch}
         recruits += batch
     recruits.sort(key=lambda r: r["rank"])
-    for stage in PLAYER_STAGES:                        # origins -> ... -> ratings
+    for stage in PLAYER_STAGES:                        # positions -> origins -> ... -> ratings
         recruits = stage(recruits, rng, config)
     recruits = names(recruits, rng, config, distinctive)   # needs ethnicity + origin
 
