@@ -7,13 +7,13 @@ from recruit_gen.stages import (
 )
 
 
-def run_pipeline(count: int, seed: int, config: SportConfig) -> list[dict]:
+def run_pipeline(count: int, seed: int, config: SportConfig, top: bool = False) -> list[dict]:
     rng = np.random.default_rng(seed)
-    recruits = class_shape(count, rng)            # source: makes the list
+    recruits = class_shape(count, rng, config, top)   # source: who's in the class (by rank)
     recruits = origins(recruits, rng)             # transforms: enrich it
     recruits = positions(recruits, rng, config)
     recruits = physicals(recruits, rng, config)   # body depends on position
-    recruits = talent(recruits, rng)
+    recruits = talent(recruits, rng, config)      # stars, rating, true talent, position rank
     recruits = development(recruits, rng)
     recruits = names(recruits, rng)
     recruits = validate_dedup(recruits, rng)      # contract check: last line of defense

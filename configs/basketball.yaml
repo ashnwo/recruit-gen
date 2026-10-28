@@ -30,3 +30,32 @@ positions:
     # so the curve leans tall: middle ~6'11", rare 7'3"+.
     height: {distribution: skewnormal, loc: 81.5, scale: 2.4, a: 3}
     weight: {ref_height: 83.0, at_ref: 235, lbs_per_inch: 7, sd: 16}
+
+# Talent and rankings.
+#   population  - senior varsity players nationwide that rankings are drawn from
+#   pool_size   - how many of them get a national ranking (your class is drawn from these)
+#   scout_error - how wrong scouts are about a player's real talent. Bigger = more
+#                 steals and busts (0.3 gives ~half "As Advertised", ~5-7% busts/steals)
+#   stars       - each star level: the last national rank that gets it, and the
+#                 247-style rating range (best rank in the band gets the first number)
+#   verdicts    - compare where his TRUE talent would rank him to his scouted rank.
+#                 "4" = true rank 4 times better (Steal) or worse (Bust).
+#                 min_gap: ranks must also be at least this many spots apart, so
+#                 #1 really being #2 is still "As Advertised".
+#                 With these numbers: ~half As Advertised, ~20% each Under/Overrated,
+#                 ~5-7% each Steal/Bust
+talent:
+  population: 100000
+  pool_size: 1000
+  scout_error: 0.3
+  stars:
+    - {stars: 5, last_rank: 25,   rating: [100, 98]}
+    - {stars: 4, last_rank: 125,  rating: [97, 90]}
+    - {stars: 3, last_rank: 400,  rating: [89, 80]}
+    - {stars: 2, last_rank: 1000, rating: [79, 70]}
+  verdicts:
+    steal: 4          # e.g. ranked #200, really #50
+    underrated: 1.75
+    overrated: 1.75
+    bust: 4           # e.g. ranked #50, really #200 or lower
+    min_gap: 5

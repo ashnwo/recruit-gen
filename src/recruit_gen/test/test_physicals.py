@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import yaml
 from pydantic import ValidationError
 from scipy.stats import skewnorm
 
@@ -9,6 +10,10 @@ from recruit_gen.stages import load_sport_config, physicals, positions
 NORMAL = {"loc": 79.0, "scale": 2.5, "distribution": "normal"}
 SKEW = {"loc": 76.0, "scale": 3.0, "distribution": "skewnormal", "a": 6.0}
 WEIGHT = {"ref_height": 79.0, "at_ref": 205, "lbs_per_inch": 6, "sd": 12}
+TALENT = {"population": 1000, "pool_size": 100, "scout_error": 0.3,
+          "stars": [{"stars": 4, "last_rank": 10, "rating": [97, 90]},
+                    {"stars": 3, "last_rank": 100, "rating": [89, 80]}],
+          "verdicts": {"steal": 4, "underrated": 1.75, "overrated": 1.75, "bust": 4, "min_gap": 5}}
 
 
 def tiny_sport(**overrides) -> dict:
@@ -16,7 +21,7 @@ def tiny_sport(**overrides) -> dict:
     cfg = {"sport": "test", "positions": {
         "A": {"share": 0.5, "height": NORMAL, "weight": WEIGHT},
         "B": {"share": 0.5, "height": SKEW, "weight": WEIGHT},
-    }}
+    }, "talent": TALENT}
     cfg.update(overrides)
     return cfg
 
@@ -105,9 +110,9 @@ def test_broken_yaml_exits_cleanly(tmp_path):
 
 def test_bad_values_exit_cleanly(tmp_path):
     f = tmp_path / "bad.yaml"
-    f.write_text("sport: test\npositions:\n  A:\n    share: 1.0\n"
-                 "    height: {distribution: normal, loc: 79, scale: -2}\n"
-                 "    weight: {ref_height: 79, at_ref: 205, lbs_per_inch: 6, sd: 12}\n")
+    cfg = tiny_sport()
+    cfg["positions"]["A"]["height"] = {**NORMAL, "scale": -2}
+    f.write_text(yaml.safe_dump(cfg))
     with pytest.raises(SystemExit):
         load_sport_config(f)
 

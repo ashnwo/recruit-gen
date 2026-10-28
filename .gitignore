@@ -15,4 +15,4 @@ recruits.csv
 .venv
 
 # Files
-recruits.csv
+recruits.csv.DS_Store

@@ -55,14 +55,23 @@ def generate(
     seed: int = 42,
     config: Optional[Path] = None,
     out: Path = Path("recruits.csv"),
+    top: bool = typer.Option(False, "--top", help="Best N in the country instead of a realistic mix."),
 ):
     if count < 1:
         typer.echo("--count must be at least 1.")
         raise typer.Exit(1)
     sport_config = load_sport_config(find_config(sport, config))
-    recruits = run_pipeline(count, seed, sport_config)
+    pool = sport_config.talent.pool_size
+    if count > pool:
+        typer.echo(f"--count can be at most {pool} for {sport_config.sport} "
+                   f"(that's how many players are ranked; see pool_size in the config).")
+        raise typer.Exit(1)
+    recruits = run_pipeline(count, seed, sport_config, top=top)
     write_csv(recruits, out)
-    typer.echo(f"Wrote {len(recruits)} {sport_config.sport} recruits to {out}")
+    stars = {s: sum(r["stars"] == s for r in recruits) for s in (5, 4, 3, 2)}
+    mix = ", ".join(f"{s}-star {n}" for s, n in stars.items() if n)
+    kind = f"top {len(recruits)}" if top else f"{len(recruits)}"
+    typer.echo(f"Wrote {kind} {sport_config.sport} recruits to {out}  ({mix})")
 
 
 if __name__ == "__main__":
