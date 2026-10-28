@@ -1,18 +1,19 @@
-"""Rebuild the golden file after an INTENDED change to the pipeline.
+"""Rebuild the golden file after an INTENDED change to the pipeline or config.
 
-    python src/recruit_gen/test/update_golden.py
+    uv run python src/recruit_gen/test/update_golden.py
 
 Then look at the diff (git diff) before committing, so you know exactly what changed.
 """
 import json
 from pathlib import Path
 
-from recruit_gen.models import parse_physicals_config
+from recruit_gen.cli import find_config
 from recruit_gen.pipeline import run_pipeline
+from recruit_gen.stages import load_sport_config
 
-CONFIG = parse_physicals_config({"loc": 79.0, "scale": 2.5, "distribution": "normal"})
 GOLDEN = Path(__file__).parent / "basketball_seed42.json"
 
 if __name__ == "__main__":
-    GOLDEN.write_text(json.dumps(run_pipeline(count=80, seed=42, config=CONFIG), indent=2) + "\n")
+    config = load_sport_config(find_config("basketball"))
+    GOLDEN.write_text(json.dumps(run_pipeline(count=80, seed=42, config=config), indent=2) + "\n")
     print(f"Updated {GOLDEN}")

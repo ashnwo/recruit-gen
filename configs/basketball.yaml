@@ -1,0 +1,32 @@
+# Basketball settings. Change numbers here, not in the Python code.
+sport: basketball
+
+# Each position:
+#   share   - fraction of recruits at this position (all shares must add up to 1)
+#   height  - inches. "normal" = bell curve (loc = middle, scale = spread)
+#             "skewnormal" = lopsided bell; a > 0 stretches the tall side
+#   weight  - lbs. A player exactly ref_height tall centers at at_ref lbs,
+#             gains lbs_per_inch for each inch taller, and varies by about sd lbs
+positions:
+  PG:
+    share: 0.20
+    height: {distribution: normal, loc: 74.0, scale: 1.8}        # ~6'2"
+    weight: {ref_height: 74.0, at_ref: 180, lbs_per_inch: 5, sd: 10}
+  SG:
+    share: 0.22
+    height: {distribution: normal, loc: 76.5, scale: 1.6}        # ~6'4.5"
+    weight: {ref_height: 76.5, at_ref: 192, lbs_per_inch: 5, sd: 11}
+  SF:
+    share: 0.22
+    height: {distribution: normal, loc: 79.0, scale: 1.5}        # ~6'7"
+    weight: {ref_height: 79.0, at_ref: 205, lbs_per_inch: 6, sd: 12}
+  PF:
+    share: 0.20
+    height: {distribution: normal, loc: 80.5, scale: 1.4}        # ~6'8.5"
+    weight: {ref_height: 80.5, at_ref: 220, lbs_per_inch: 6, sd: 14}
+  C:
+    share: 0.16
+    # Centers rarely run short (those become PFs) but a few are giants,
+    # so the curve leans tall: middle ~6'11", rare 7'3"+.
+    height: {distribution: skewnormal, loc: 81.5, scale: 2.4, a: 3}
+    weight: {ref_height: 83.0, at_ref: 235, lbs_per_inch: 7, sd: 16}

@@ -1,640 +1,41 @@
 [
   {
     "origin": "USA",
-    "position": "PG",
+    "position": "PF",
+    "height": 81,
+    "height_ft": "6'9\"",
+    "weight": 219,
+    "talent": 0.013255239816251192,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
     "height": 80,
-    "weight": 210,
-    "talent": 5.236633092213752e-05,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 235,
-    "talent": 0.17081758188891588,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 74,
-    "weight": 171,
-    "talent": 0.05103272694115562,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 79,
-    "weight": 211,
-    "talent": 0.5713525722002597,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 79,
-    "weight": 205,
-    "talent": 0.5280067964786623,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 234,
-    "talent": 0.031896902951211545,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 79,
-    "weight": 225,
-    "talent": 0.8652490950266211,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 211,
-    "talent": 0.02462130424732419,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 210,
-    "talent": 0.1366363363441233,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 226,
-    "talent": 0.016770353462210084,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 79,
-    "weight": 207,
-    "talent": 0.8201403759674969,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 82,
-    "weight": 230,
-    "talent": 0.0044601695751801534,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 204,
-    "talent": 9.058309059490522e-05,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 224,
-    "talent": 0.08236798583207959,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 224,
-    "talent": 0.9773006450140218,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 84,
-    "weight": 240,
-    "talent": 0.7089622038230544,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 200,
-    "talent": 0.4195303897586091,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 237,
-    "talent": 0.7068538734439421,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 79,
-    "weight": 206,
-    "talent": 0.7131910086560885,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 77,
-    "weight": 209,
-    "talent": 0.13968393366951304,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 231,
-    "talent": 0.031533246970383164,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 77,
-    "weight": 204,
-    "talent": 0.4601218763756621,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 79,
-    "weight": 216,
-    "talent": 0.28967240768709535,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 228,
-    "talent": 0.05217012885348612,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 227,
-    "talent": 0.0008430159523056457,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 226,
-    "talent": 0.416480625902708,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 75,
-    "weight": 187,
-    "talent": 0.0180797297535746,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 202,
-    "talent": 0.8221649070161159,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 223,
-    "talent": 0.013992394526685352,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 77,
-    "weight": 212,
-    "talent": 0.0018499018863644742,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 75,
-    "weight": 187,
-    "talent": 0.5740896435758266,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 79,
-    "weight": 220,
-    "talent": 0.003601580830269166,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 234,
-    "talent": 0.005761168262598314,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
+    "height_ft": "6'8\"",
     "weight": 203,
-    "talent": 0.21533410031073982,
+    "talent": 0.4151847780082733,
     "development": "star",
     "name": "bobby smith"
   },
   {
     "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 224,
-    "talent": 0.6689164409611457,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 76,
-    "weight": 185,
-    "talent": 0.007579741529755046,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 77,
-    "weight": 207,
-    "talent": 0.029884412361662654,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 79,
-    "weight": 221,
-    "talent": 0.46983105286279175,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 210,
-    "talent": 0.9178381662065178,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 223,
-    "talent": 0.12555671409441238,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 213,
-    "talent": 0.0029796123761054623,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 204,
-    "talent": 2.7067074025552985e-06,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 76,
-    "weight": 201,
-    "talent": 0.01211249355772096,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 208,
-    "talent": 0.0022906874786980612,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 224,
-    "talent": 0.31119528209192354,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 225,
-    "talent": 0.0018083792599941431,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 207,
-    "talent": 0.12980780439487502,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 75,
-    "weight": 176,
-    "talent": 0.334634722770442,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 76,
-    "weight": 186,
-    "talent": 0.1962410528780459,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 211,
-    "talent": 0.007973108387221555,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 221,
-    "talent": 0.519959988554161,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 215,
-    "talent": 0.3661506351244523,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 77,
-    "weight": 200,
-    "talent": 0.40355721217434887,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 77,
-    "weight": 199,
-    "talent": 0.002251065534368026,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 209,
-    "talent": 0.0018952899877635258,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 222,
-    "talent": 0.7980491124450093,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 194,
-    "talent": 0.06284455700590623,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 79,
-    "weight": 209,
-    "talent": 0.027256957649177304,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 220,
-    "talent": 0.11663203227134572,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
+    "position": "C",
     "height": 83,
-    "weight": 236,
-    "talent": 0.29125522009184907,
+    "height_ft": "6'11\"",
+    "weight": 216,
+    "talent": 0.5444754317071698,
     "development": "star",
     "name": "bobby smith"
   },
   {
     "origin": "USA",
-    "position": "PG",
-    "height": 76,
-    "weight": 198,
-    "talent": 0.87269026617427,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 234,
-    "talent": 0.02350332565459888,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
+    "position": "PF",
     "height": 81,
-    "weight": 230,
-    "talent": 0.7909614888239156,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 83,
-    "weight": 226,
-    "talent": 1.5363024275505537e-05,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 77,
-    "weight": 193,
-    "talent": 0.17113694627349865,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 78,
-    "weight": 194,
-    "talent": 0.2548100931507842,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 81,
-    "weight": 224,
-    "talent": 0.0011875610318153992,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 75,
-    "weight": 180,
-    "talent": 0.002764016783512134,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 228,
-    "talent": 0.07362028546957781,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 84,
-    "weight": 273,
-    "talent": 0.9020780824999574,
-    "development": "star",
-    "name": "bobby smith"
-  },
-  {
-    "origin": "USA",
-    "position": "PG",
-    "height": 80,
-    "weight": 210,
-    "talent": 0.2117540860068506,
+    "height_ft": "6'9\"",
+    "weight": 216,
+    "talent": 0.0011668468711263148,
     "development": "star",
     "name": "bobby smith"
   },
@@ -642,35 +43,239 @@
     "origin": "USA",
     "position": "PG",
     "height": 74,
-    "weight": 187,
-    "talent": 0.8122268809519917,
+    "height_ft": "6'2\"",
+    "weight": 185,
+    "talent": 0.0002948611568101626,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "C",
+    "height": 83,
+    "height_ft": "6'11\"",
+    "weight": 233,
+    "talent": 0.21004395576757096,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 216,
+    "talent": 0.003123227770769376,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 78,
+    "height_ft": "6'6\"",
+    "weight": 185,
+    "talent": 0.5608302229510961,
     "development": "star",
     "name": "bobby smith"
   },
   {
     "origin": "USA",
     "position": "PG",
-    "height": 77,
-    "weight": 198,
-    "talent": 0.5204186831149474,
+    "height": 72,
+    "height_ft": "6'0\"",
+    "weight": 160,
+    "talent": 0.029887590695967334,
     "development": "star",
     "name": "bobby smith"
   },
   {
     "origin": "USA",
-    "position": "PG",
-    "height": 77,
-    "weight": 201,
-    "talent": 0.10209743637361018,
+    "position": "SF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 200,
+    "talent": 0.0029780242894711898,
     "development": "star",
     "name": "bobby smith"
   },
   {
     "origin": "USA",
-    "position": "PG",
+    "position": "SG",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 204,
+    "talent": 0.7811548240686439,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "C",
     "height": 82,
-    "weight": 234,
-    "talent": 0.4832994513100347,
+    "height_ft": "6'10\"",
+    "weight": 213,
+    "talent": 0.004535693555625587,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 204,
+    "talent": 0.0230809830343462,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 229,
+    "talent": 0.003624826835375582,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 192,
+    "talent": 0.0015404012496444775,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 77,
+    "height_ft": "6'5\"",
+    "weight": 188,
+    "talent": 9.458209112634531e-06,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 77,
+    "height_ft": "6'5\"",
+    "weight": 194,
+    "talent": 0.0001699891974744384,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PG",
+    "height": 73,
+    "height_ft": "6'1\"",
+    "weight": 177,
+    "talent": 0.005326502581267198,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 81,
+    "height_ft": "6'9\"",
+    "weight": 245,
+    "talent": 0.00015211879569522674,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 193,
+    "talent": 0.20657580437923279,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 81,
+    "height_ft": "6'9\"",
+    "weight": 226,
+    "talent": 0.3154242334601122,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 214,
+    "talent": 0.060991046156329436,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "C",
+    "height": 83,
+    "height_ft": "6'11\"",
+    "weight": 216,
+    "talent": 0.03215473114015453,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "C",
+    "height": 84,
+    "height_ft": "7'0\"",
+    "weight": 236,
+    "talent": 0.128425500727255,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 220,
+    "talent": 0.6699332267592341,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PG",
+    "height": 74,
+    "height_ft": "6'2\"",
+    "weight": 165,
+    "talent": 0.6165810680633944,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 77,
+    "height_ft": "6'5\"",
+    "weight": 197,
+    "talent": 8.217138942397603e-05,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PG",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 210,
+    "talent": 0.005978861201970531,
     "development": "star",
     "name": "bobby smith"
   },
@@ -678,8 +283,219 @@
     "origin": "USA",
     "position": "PG",
     "height": 79,
-    "weight": 204,
-    "talent": 5.674788209032772e-06,
+    "height_ft": "6'7\"",
+    "weight": 209,
+    "talent": 0.013269108258107575,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 181,
+    "talent": 0.015510451536362818,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 81,
+    "height_ft": "6'9\"",
+    "weight": 212,
+    "talent": 0.1863970657524544,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "C",
+    "height": 83,
+    "height_ft": "6'11\"",
+    "weight": 233,
+    "talent": 0.07212762499187508,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 78,
+    "height_ft": "6'6\"",
+    "weight": 201,
+    "talent": 0.00011948893505857345,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 178,
+    "talent": 0.05215187268966456,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 181,
+    "talent": 0.14367441687217963,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PG",
+    "height": 74,
+    "height_ft": "6'2\"",
+    "weight": 198,
+    "talent": 0.0010510003383094881,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PG",
+    "height": 74,
+    "height_ft": "6'2\"",
+    "weight": 190,
+    "talent": 0.5789646188544615,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 78,
+    "height_ft": "6'6\"",
+    "weight": 185,
+    "talent": 0.00014029888755944466,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 75,
+    "height_ft": "6'3\"",
+    "weight": 177,
+    "talent": 0.7910472919217897,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 83,
+    "height_ft": "6'11\"",
+    "weight": 224,
+    "talent": 0.0009736295052234843,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 200,
+    "talent": 0.6003037095338958,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 82,
+    "height_ft": "6'10\"",
+    "weight": 234,
+    "talent": 0.7354661641863396,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 216,
+    "talent": 0.9399555867135274,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 75,
+    "height_ft": "6'3\"",
+    "weight": 189,
+    "talent": 0.515899548498018,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 200,
+    "talent": 0.4735990460081479,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 213,
+    "talent": 0.2652073048434134,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 206,
+    "talent": 0.4727225024566957,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 193,
+    "talent": 0.002435973114707483,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 82,
+    "height_ft": "6'10\"",
+    "weight": 232,
+    "talent": 0.15404930281040755,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PG",
+    "height": 73,
+    "height_ft": "6'1\"",
+    "weight": 186,
+    "talent": 0.1359734648424202,
     "development": "star",
     "name": "bobby smith"
   },
@@ -687,35 +503,299 @@
     "origin": "USA",
     "position": "PG",
     "height": 75,
-    "weight": 185,
-    "talent": 0.0013001682600742865,
+    "height_ft": "6'3\"",
+    "weight": 200,
+    "talent": 0.6306842668373097,
     "development": "star",
     "name": "bobby smith"
   },
   {
     "origin": "USA",
     "position": "PG",
+    "height": 74,
+    "height_ft": "6'2\"",
+    "weight": 168,
+    "talent": 0.09912387351370812,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
     "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 234,
+    "talent": 0.05710643093017404,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 83,
+    "height_ft": "6'11\"",
     "weight": 232,
-    "talent": 0.5706069311291759,
+    "talent": 0.2616077138183264,
     "development": "star",
     "name": "bobby smith"
   },
   {
     "origin": "USA",
-    "position": "PG",
+    "position": "PF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 237,
+    "talent": 0.018919614879885825,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
     "height": 79,
-    "weight": 224,
-    "talent": 0.5059130915626171,
+    "height_ft": "6'7\"",
+    "weight": 198,
+    "talent": 0.0027304050777359596,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 206,
+    "talent": 0.10913125083070412,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 203,
+    "talent": 0.07245401555680789,
     "development": "star",
     "name": "bobby smith"
   },
   {
     "origin": "USA",
     "position": "PG",
+    "height": 75,
+    "height_ft": "6'3\"",
+    "weight": 199,
+    "talent": 0.012579423705429025,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PG",
+    "height": 74,
+    "height_ft": "6'2\"",
+    "weight": 186,
+    "talent": 0.04963795711836082,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
     "height": 78,
-    "weight": 196,
-    "talent": 0.012590915892846982,
+    "height_ft": "6'6\"",
+    "weight": 204,
+    "talent": 0.04918577819773729,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 78,
+    "height_ft": "6'6\"",
+    "weight": 184,
+    "talent": 0.03512499466089928,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 78,
+    "height_ft": "6'6\"",
+    "weight": 195,
+    "talent": 0.05464016660379824,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 82,
+    "height_ft": "6'10\"",
+    "weight": 210,
+    "talent": 0.3224666497413122,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 199,
+    "talent": 0.0261653984298423,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 217,
+    "talent": 0.8542865524365966,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 227,
+    "talent": 0.7694516525181894,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 182,
+    "talent": 0.11122248238240284,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PG",
+    "height": 74,
+    "height_ft": "6'2\"",
+    "weight": 182,
+    "talent": 0.03540426006634992,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 192,
+    "talent": 0.1535040216521966,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 77,
+    "height_ft": "6'5\"",
+    "weight": 197,
+    "talent": 0.6110101405249424,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 81,
+    "height_ft": "6'9\"",
+    "weight": 235,
+    "talent": 0.2779175254262331,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "C",
+    "height": 84,
+    "height_ft": "7'0\"",
+    "weight": 219,
+    "talent": 0.5204786859351569,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 193,
+    "talent": 0.15118286536610245,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PG",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 183,
+    "talent": 0.2535371347448786,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 75,
+    "height_ft": "6'3\"",
+    "weight": 161,
+    "talent": 0.02392661471444718,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SG",
+    "height": 76,
+    "height_ft": "6'4\"",
+    "weight": 178,
+    "talent": 0.39689225099452474,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 80,
+    "height_ft": "6'8\"",
+    "weight": 205,
+    "talent": 0.008292034319467559,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "SF",
+    "height": 79,
+    "height_ft": "6'7\"",
+    "weight": 184,
+    "talent": 0.3354099334773043,
+    "development": "star",
+    "name": "bobby smith"
+  },
+  {
+    "origin": "USA",
+    "position": "PF",
+    "height": 78,
+    "height_ft": "6'6\"",
+    "weight": 235,
+    "talent": 0.6376528031861786,
     "development": "star",
     "name": "bobby smith"
   }
