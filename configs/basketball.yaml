@@ -1,4 +1,5 @@
 # Basketball settings. Change numbers here, not in the Python code.
+game: "NBA 2K26 (MyNBA draft classes)"   # shown in the JSON export
 sport: basketball
 
 # Each position:

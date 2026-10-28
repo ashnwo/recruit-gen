@@ -415,6 +415,7 @@ class ChecksConfig(BaseModel):
 
 class SportConfig(BaseModel):
     sport: str
+    game: str = ""                       # which video game this sport's settings are built for
     positions: dict[str, PositionConfig] = Field(min_length=1)
     talent: TalentConfig
     origins: OriginsConfig

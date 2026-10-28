@@ -16,9 +16,11 @@ from typing import Optional
 import typer
 
 from recruit_gen.checks import ClassCheckError
+from recruit_gen.export import lore_json, write_json
 from recruit_gen.locks import LockError, Spec, build_locks, check_request, read_spec_file
 from recruit_gen.models import Recruit
 from recruit_gen.pipeline import build_board
+from recruit_gen.report import class_report, format_report
 from recruit_gen.stages import load_sport_config
 
 PACKAGE_DIR = Path(__file__).resolve().parent     # src/recruit_gen
@@ -140,6 +142,8 @@ def generate(
     distinctive: str = typer.Option("normal", help="How often creative names appear: low, normal or high."),
     out: Optional[Path] = typer.Option(None, help="Output CSV (default: output/<sport>_<count>_seed<seed>.csv)."),
     show: int = typer.Option(15, help="Rows to print in the terminal (0 = none)."),
+    json_out: bool = typer.Option(True, "--json/--no-json", help="Also save a JSON file for the backstory/lore workflow."),
+    report: bool = typer.Option(True, "--report/--no-report", help="Print the class check vs. targets."),
     config: Optional[Path] = typer.Option(None, help="Use this sport config file instead."),
 ):
     """Generate a class of realistic fictional recruits as a CSV edit sheet."""
@@ -189,13 +193,22 @@ def generate(
     elif old_rejects.exists():
         old_rejects.unlink()          # don't leave a stale rejects file from an earlier run
 
+    json_path = out.with_suffix(".json")
+    if json_out:
+        requests = [f"{s.count} x {s.locks.describe()}" for s in specs]
+        write_json(lore_json(recruits, sport_config, seed, top, requests), json_path)
+
     table = summary_table(recruits, show)
     if table:
         typer.echo("\n" + table + "\n")
+    if report:
+        typer.echo(format_report(class_report(recruits, sport_config, top, custom), len(recruits), custom) + "\n")
     star_mix = {s: sum(r["stars"] == s for r in recruits) for s in (5, 4, 3, 2)}
     mix = ", ".join(f"{s}-star {n}" for s, n in star_mix.items() if n)
     kind = f"top {len(recruits)}" if top else f"{len(recruits)}"
     typer.echo(f"Wrote {kind} {sport_config.sport} recruits to {out}  ({mix})")
+    if json_out:
+        typer.echo(f"Lore file for backstories: {json_path}")
     replaced = len({x["rank"] for x in result.rejects})
     if replaced:
         typer.echo(f"Clean-up check: replaced {replaced} player(s) who failed; reasons in {rejects_path(out)}")

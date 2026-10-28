@@ -1,6 +1,7 @@
 # Football settings (EA College Football 26/27 Dynasty, carries over to Madden).
 # Same format as basketball.yaml - see that file for what each setting means.
 # Adding this sport took no new code paths: football is just data.
+game: "EA College Football 26/27 (Dynasty) and Madden"   # shown in the JSON export
 sport: football
 
 # Positions: share, height curve, weight formula, ethnicity mix, roles, archetypes...
