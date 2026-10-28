@@ -7,7 +7,8 @@ from recruit_gen.stages import (
 )
 
 
-def run_pipeline(count: int, seed: int, config: SportConfig, top: bool = False) -> list[dict]:
+def run_pipeline(count: int, seed: int, config: SportConfig, top: bool = False,
+                 distinctive: str = "normal") -> list[dict]:
     rng = np.random.default_rng(seed)
     recruits = class_shape(count, rng, config, top)   # source: who's in the class (by rank)
     recruits = origins(recruits, rng, config)     # transforms: state/country + hometown
@@ -16,6 +17,6 @@ def run_pipeline(count: int, seed: int, config: SportConfig, top: bool = False) 
     recruits = talent(recruits, rng, config)      # stars, rating, true talent, position rank
     recruits = backgrounds(recruits, rng, config) # ethnicity, high school, state rank
     recruits = development(recruits, rng)
-    recruits = names(recruits, rng)
+    recruits = names(recruits, rng, config, distinctive)   # needs ethnicity + origin
     recruits = validate_dedup(recruits, rng)      # contract check: last line of defense
     return recruits

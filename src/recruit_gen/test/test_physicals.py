@@ -4,6 +4,7 @@ import yaml
 from pydantic import ValidationError
 from scipy.stats import skewnorm
 
+from recruit_gen.cli import find_config
 from recruit_gen.models import NormalParams, SkewNormalParams, SportConfig, parse_physicals_config
 from recruit_gen.stages import load_sport_config, physicals, positions
 
@@ -115,9 +116,11 @@ def test_broken_yaml_exits_cleanly(tmp_path):
 
 
 def write_sport(folder, cfg) -> "Path":
-    """Write a sport config + its shared/places.yaml the way the loader expects."""
+    """Write a sport config + its shared files the way the loader expects.
+    The name tables are big, so link to the real ones instead of copying."""
     (folder / "shared").mkdir(exist_ok=True)
     (folder / "shared" / "places.yaml").write_text(yaml.safe_dump(cfg.pop("places")))
+    (folder / "shared" / "names").symlink_to(find_config("basketball").parent / "shared" / "names")
     f = folder / "test.yaml"
     f.write_text(yaml.safe_dump(cfg))
     return f

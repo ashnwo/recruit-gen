@@ -1,0 +1,227 @@
+# Name rules and hand-built name pools. Shared by every sport.
+# The big tables next to this file come from public data:
+#   first_names.csv - SSA baby names, boys born 2005-2010, expected births per group
+#   surnames.csv    - 2010 US Census surnames, people per group
+# (Both were cleaned in Step 1: girls' names logged as boys, typos and placeholders removed.)
+
+# ---- fit: keeps names believable for the player's background -------------------
+# A first name can be used for a group only if EITHER rule passes:
+#   1. at least min_group_births boys in that group got it (2005-2010), or
+#   2. that group is at least min_group_share of all boys with the name.
+# Same idea for last names with Census counts (people of all ages).
+fit:
+  min_group_births: 100
+  min_group_share: 0.25
+  surname_min_group_people: 250
+  surname_min_group_share: 0.15
+  cross_mix: 0.05            # share of players with a first name usually linked to another group (must still fit his)
+  polynesian_us_min_births: 1500   # Polynesian players only get common US first names
+
+# ---- creative African-American names ------------------------------------------
+# distinctive_share: a first name counts as distinctively Black above this share.
+# distinctive_boost: how much more often those names come up, by --distinctive level.
+# Styling: Deandre -> DeAndre or De'Andre when a name is a known prefix + root.
+distinctive:
+  distinctive_share: 0.6
+  distinctive_boost: {low: 1.0, normal: 1.7, high: 2.8}
+  style_rate: 0.5        # chance a name that fits the pattern gets styled
+  camel_share: 0.55       # DeAndre style; the rest get De'Andre style
+  prefixes: ["De", "Da", "Ja", "Ke", "La", "Le", "Ta", "Te", "Ty", "Tre", "Qua", "Za", "Ka", "Ra", "Jah", "Ny", "Sha", "Ki", "Ky", "Ji", "Jo", "Je", "Zy", "Tra"]
+  roots: ["andre", "andrae", "shawn", "shaun", "sean", "marcus", "mario", "marion", "von", "vonte", "vonta", "vante", "vion", "vonn", "quan", "quann", "juan", "ron", "rell", "darius", "darrius", "marr", "mari", "marri", "mere", "quez", "shun", "dre", "varius", "veon", "korey", "kwon", "wan", "wayne", "vontae", "monte", "montre", "marco", "lon", "reon", "rion", "rian", "vaughn", "vaun", "tavious", "quavious", "vious", "darrion", "darion", "trell", "trey", "vonte", "cori", "corey", "anthony", "angelo", "aundre", "zion", "kari"]
+
+# ---- sharpen: small groups pick up 'noise' names; raising each name's group
+# share to this power favors names typical FOR the group.
+sharpen: {white: 0.0, black: 0.15, hispanic: 0.6, asian: 1.2}
+
+# ---- nicknames and suffixes ------------------------------------------------------
+nicknames:
+  initials_rate: 0.045     # chance he goes by initials (CJ, DJ...)
+  initials: {AJ: 10, BJ: 4, CJ: 12, DJ: 12, EJ: 3, JJ: 6, KJ: 5, MJ: 3, PJ: 4, RJ: 4, TJ: 10, JT: 3, JD: 2, JC: 2, JB: 2, JR: 1, DK: 1, TK: 1, KT: 1}
+  dotted_share: 0.15       # C.J. instead of CJ
+  trey_rate: 0.35          # share of IIIs who go by Trey
+suffix_rates:
+  black: {"Jr.": 0.075, II: 0.025, III: 0.012, IV: 0.002}
+  white: {"Jr.": 0.035, II: 0.012, III: 0.012, IV: 0.003}
+  hispanic: {"Jr.": 0.03, II: 0.004}
+  polynesian: {"Jr.": 0.05, II: 0.01, III: 0.005}
+  default: {"Jr.": 0.01}
+
+# ---- your overrides ----------------------------------------------------------------
+# never_use: first or last names that should never appear (case doesn't matter)
+never_use: []
+# Full names that read as a real famous athlete are thrown out and redrawn.
+famous_names: ["LeBron James", "Michael Jordan", "Kevin Durant", "Stephen Curry", "Kobe Bryant", "Anthony Davis", "Chris Paul", "James Harden", "Russell Westbrook", "Kevin Love", "Kyrie Irving", "Paul George", "Jimmy Butler", "Kawhi Leonard", "Damian Lillard", "Devin Booker", "Jayson Tatum", "Jaylen Brown", "Joel Embiid", "Tyrese Maxey", "Tyrese Haliburton", "Cade Cunningham", "Jalen Green", "Jalen Brunson", "Jalen Williams", "Jalen Johnson", "Jalen Suggs", "Jalen Duren", "Jalen Smith", "Anthony Edwards", "Michael Porter", "Jamal Murray", "Aaron Gordon", "Donovan Mitchell", "Darius Garland", "Evan Mobley", "Scottie Barnes", "Paolo Banchero", "Josh Giddey", "Chet Holmgren", "Brandon Miller", "Cameron Johnson", "Cam Thomas", "Dereck Lively", "Amen Thompson", "Ausar Thompson", "Cooper Flagg", "Dylan Harper", "Ace Bailey", "Kon Knueppel", "Allen Iverson", "Shaquille O'Neal", "Tim Duncan", "Dwyane Wade", "Chris Bosh", "Carmelo Anthony", "Dwight Howard", "Derrick Rose", "Tracy McGrady", "Vince Carter", "Kevin Garnett", "Paul Pierce", "Ray Allen", "Magic Johnson", "Larry Bird", "Tom Brady", "Patrick Mahomes", "Josh Allen", "Lamar Jackson", "Joe Burrow", "Jalen Hurts", "Justin Herbert", "Justin Jefferson", "Davante Adams", "Tyreek Hill", "Travis Kelce", "Aaron Donald", "Myles Garrett", "TJ Watt", "Micah Parsons", "Derrick Henry", "Christian McCaffrey", "Saquon Barkley", "Josh Jacobs", "Nick Chubb", "Bijan Robinson", "Jahmyr Gibbs", "Jamarr Chase", "CeeDee Lamb", "Amon-Ra St. Brown", "AJ Brown", "DK Metcalf", "Stefon Diggs", "Cooper Kupp", "Deebo Samuel", "Jaylen Waddle", "Garrett Wilson", "Chris Olave", "Drake London", "Puka Nacua", "Brock Bowers", "Caleb Williams", "Jayden Daniels", "Drake Maye", "Bo Nix", "CJ Stroud", "Bryce Young", "Anthony Richardson", "Kyler Murray", "Tua Tagovailoa", "Trevor Lawrence", "Justin Fields", "Dak Prescott", "Russell Wilson", "Aaron Rodgers", "Peyton Manning", "Eli Manning", "Michael Vick", "Cam Newton", "Deion Sanders", "Shedeur Sanders", "Travis Hunter", "Barry Sanders", "Emmitt Smith", "Walter Payton", "Jerry Rice", "Randy Moss", "Calvin Johnson", "Adrian Peterson", "Marshawn Lynch", "Reggie Bush", "Vince Young", "Ray Lewis", "Ed Reed", "Troy Polamalu", "Sean Taylor", "Bo Jackson", "Jim Brown", "Arch Manning", "Jeremiah Smith", "Ryan Williams", "Julian Sayin", "Bryce Underwood", "Michael Thomas", "Mike Evans", "Jonathan Taylor", "Kenneth Walker", "Breece Hall", "Najee Harris", "Patrick Surtain", "Sauce Gardner", "Jalen Ramsey", "Darrelle Revis", "JR Smith", "CJ McCollum", "PJ Tucker", "DJ Moore", "AJ Green", "JJ Redick", "RJ Barrett", "OG Anunoby", "DJ Wagner", "KJ Martin", "Marcus Smart", "Jalen Rose", "Chris Webber", "Grant Hill", "Josh Hart", "Mikal Bridges", "Brandon Ingram", "Deandre Ayton", "DeAndre Jordan", "DeMar DeRozan", "Kyle Lowry", "Jrue Holiday", "Jason Kidd", "Gary Payton", "Kemba Walker", "Isaiah Thomas", "Isiah Thomas", "Zion Williamson", "Ja Morant", "Trae Young", "Luka Doncic", "Nikola Jokic", "Kyle Kuzma", "Jordan Poole", "Austin Reaves", "Desmond Bane", "Jaren Jackson", "Scottie Pippen", "Dennis Rodman", "Patrick Ewing", "Hakeem Olajuwon", "David Robinson", "Karl Malone", "John Stockton", "Charles Barkley", "Dominique Wilkins", "Clyde Drexler", "Reggie Miller", "Steve Nash", "Dirk Nowitzki", "Tony Parker", "Victor Wembanyama", "Josh Smith", "Kenny Smith", "Steve Smith", "Marvin Bagley", "Bam Adebayo", "Jaden Ivey", "Keegan Murray", "Jabari Smith", "Jalen Carter", "Will Anderson", "Marvin Harrison", "Caleb Downs", "AJ Dybantsa", "Darryn Peterson", "Cameron Boozer", "Cayden Boozer", "Mikel Brown", "Nate Ament", "Dylan Raiola", "Keelon Russell"]
+
+# ---- Census glues names together (Jean-Baptiste -> JEANBAPTISTE, St. Louis -> STLOUIS).
+# A surname starting with one of these prefixes, followed by one of the given
+# names below, gets its separator back.
+rejoin_prefixes: {Jean: "-", Pierre: "-", Saint: "-", Petit: "-", Fils: "-", St: ". "}
+rejoin_remainders: ["Baptiste", "Louis", "Pierre", "Charles", "Francois", "Jacques", "Paul", "Philippe", "Gilles", "Simon", "Jean", "Victor", "Felix", "Fort", "Cyr", "Hilaire", "Germain", "Juste", "Marie", "Michel", "Noel", "Fleur", "Frere", "Aime", "Vil", "Fleurant", "Eloi", "Vilus", "John", "Clair", "Amand", "Julien", "Fleurant", "Onge", "Laurent", "Martin", "Denis", "Croix", "Juste", "George", "James"]
+
+# ---- hand-built pools for players the US tables don't cover ------------------------
+# Used for Polynesian players and international players (see name_pools in places.yaml).
+pools:
+  polynesian:
+    first: ["Sione", "Tevita", "Viliami", "Siosaia", "Semisi", "Taniela", "Mosese", "Lemeki", "Isileli", "Penisimani", "Sitani", "Feleti", "Tomasi", "Siaosi", "Lisiate", "Salesi", "Tavita", "Iosefa", "Ioane", "Malakai", "Pita", "Sefo", "Tama", "Tuli", "Fetu", "Afa", "Manu", "Sio", "Tana", "Kainoa", "Kalani", "Keanu", "Makana", "Kekoa", "Koa", "Ikaika", "Kawika", "Kaleo", "Noa", "Makoa", "Keoni", "Kaimana", "Nainoa", "Kaniela", "Kamaka", "Kealii", "Pono", "Kahiau", "Penei", "Puka", "Vili", "Saia", "Talo", "Leki", "Tui", "Faatui", "Junior", "Losi", "Tausili", "Mapa", "Kingsley", "Alapati", "Fotu", "Mana", "Lokeni", "Kimo", "Akoni"]
+    last: ["Tuiasosopo", "Faleolo", "Fuimaono", "Leiataua", "Tuitele", "Mauga", "Sapolu", "Taumalolo", "Tago", "Pulu", "Seumalo", "Fonoti", "Tauiliili", "Matagi", "Tupua", "Aiono", "Soliai", "Toleafoa", "Taamu", "Atonio", "Sopoaga", "Paepule", "Leota", "Liufau", "Fiso", "Sua", "Tuiloma", "Malaefou", "Tafuna", "Lefiti", "Afalava", "Mailau", "Taito", "Tuilagi", "Amituanai", "Savaiinaea", "Fanene", "Laulu", "Tuioti", "Sagapolutele", "Faaui", "Aumavae", "Lealao", "Tafili", "Vaeao", "Siaosi", "Faumuina", "Togiai", "Malepeai", "Leavasa", "Fifita", "Taufa", "Tupou", "Moala", "Havili", "Vainikolo", "Tonga", "Fonua", "Latu", "Mahe", "Hufanga", "Kaufusi", "Lolohea", "Maka", "Taione", "Vea", "Folau", "Halaholo", "Kioa", "Moeaki", "Tuipulotu", "Fotu", "Vaitai", "Unga", "Pututau", "Kauvaka", "Hopoate", "Lavulo", "Funaki", "Pepa", "Naufahu", "Kata", "Taumoepeau", "Langi", "Tapueluelu", "Lutui", "Paongo", "Mone", "Sitake", "Tuakoi", "Vakameilalo", "Piutau", "Hingano", "Kahale", "Kealoha", "Kamakana", "Akana", "Kaawa", "Nakoa", "Kahananui", "Kapule", "Keola", "Kaleikini", "Kekumu", "Kamaka", "Kanoho", "Kauhane", "Kahoano", "Kaeo"]
+  quebec:
+    first: ["Felix", "Samuel", "William", "Gabriel", "Olivier", "Alexis", "Mathis", "Thomas", "Zachary", "Jeremy", "Maxime", "Antoine", "Etienne", "Xavier", "Raphael", "Emile", "Loic", "Nathan", "Justin", "Benjamin", "Charles", "Vincent", "Mathieu", "Cedric"]
+    last: ["Tremblay", "Gagnon", "Roy", "Cote", "Bouchard", "Gauthier", "Morin", "Lavoie", "Fortin", "Gagne", "Ouellet", "Pelletier", "Belanger", "Levesque", "Bergeron", "Leblanc", "Paquette", "Girard", "Simard", "Boucher", "Caron", "Beaulieu", "Cloutier", "Dube", "Poirier", "Fournier", "Lapointe", "Leclerc", "Lefebvre", "Mercier"]
+  france:
+    first: ["Hugo", "Lucas", "Theo", "Mathis", "Nathan", "Enzo", "Louis", "Clement", "Maxime", "Antoine", "Bastien", "Killian", "Matthieu", "Quentin", "Romain", "Yanis", "Adrien", "Florent", "Timothe", "Noah", "Axel", "Evan", "Rayan", "Ilan", "Sacha", "Jules", "Tom", "Zacharie", "Mathias", "Victor"]
+    last: ["Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit", "Durand", "Leroy", "Moreau", "Simon", "Laurent", "Lefebvre", "Michel", "Garcia", "David", "Bertrand", "Roux", "Vincent", "Fournier", "Morel", "Girard", "Andre", "Mercier", "Dupont", "Lambert", "Bonnet", "Francois", "Martinez", "Legrand", "Garnier", "Faure", "Rousseau", "Blanc", "Guerin", "Muller", "Henry", "Roussel", "Nicolas", "Perrin"]
+  francophone_african:
+    first: ["Moussa", "Ibrahim", "Bilal", "Yanis", "Ousmane", "Theo", "Nathan", "Killian", "Joel", "Mathis", "Noah", "Adama", "Sekou", "Ismael", "Amadou", "Rudy", "Christian", "Junior", "Elie", "Malcolm", "Wilfried", "Steve", "Lucas", "Evan", "Ilyes", "Matthew", "Zaccharie", "Melvin", "Axel", "Jordan"]
+    last: ["Diallo", "Traore", "Kone", "Coulibaly", "Diop", "Ndiaye", "Sylla", "Camara", "Toure", "Bamba", "Cisse", "Kante", "Doumbia", "Sangare", "Konate", "Fofana", "Sissoko", "Mbaye", "Mendy", "Gomis", "Sakho", "Kouyate", "Ngoma", "Mbemba", "Kabongo", "Tshibangu", "Makengo", "Ekambi", "Nkounkou", "Bakayoko", "Yabusele", "Ntilikina", "Coulibaly", "Diakite", "Fall", "Gueye", "Sarr", "Sow", "Keita", "Dembele"]
+  nigeria:
+    first: ["Chukwuemeka", "Oluwaseun", "Ikenna", "Chibuzo", "Emeka", "Obinna", "Tobi", "Tunde", "Ayodele", "Olamide", "Chidi", "Chinedu", "Uchenna", "Nnamdi", "Kelechi", "Femi", "Segun", "Babajide", "Ifeanyi", "Somto", "Daniel", "David", "Samuel", "Emmanuel", "Victor", "Precious", "Godwin", "Peter", "Michael", "Favour", "Divine", "Oluwafemi", "Adebayo", "Kingsley", "Ebuka", "Chimezie", "Onyeka", "Tochukwu", "Ademola", "Ugochukwu"]
+    last: ["Okafor", "Adebayo", "Okonkwo", "Nwosu", "Eze", "Okoro", "Adeyemi", "Okeke", "Ogunleye", "Nwankwo", "Chukwu", "Obi", "Adewale", "Oladipo", "Ibekwe", "Onuoha", "Uzoma", "Akinola", "Balogun", "Ojo", "Babatunde", "Onyekwere", "Nnaji", "Ugwu", "Anyanwu", "Ezeh", "Olaniyan", "Oyelaran", "Ndukwe", "Ekwueme", "Igwe", "Ogbonna", "Adekunle", "Bamidele", "Afolabi", "Odum", "Emenike", "Iwuchukwu", "Nwachukwu", "Ezeli"]
+  senegal:
+    first: ["Mamadou", "Moussa", "Ibrahima", "Cheikh", "Abdoulaye", "Babacar", "Ousmane", "Modou", "Pape", "Serigne", "Aliou", "Lamine", "Malick", "Saliou", "Amadou", "Mouhamed", "Assane", "Djibril", "Khadim", "Omar", "Fallou", "Bassirou", "Souleymane", "Idrissa"]
+    last: ["Diop", "Ndiaye", "Fall", "Sow", "Diallo", "Gueye", "Sarr", "Faye", "Ba", "Ndoye", "Seck", "Mbaye", "Thiam", "Cisse", "Niang", "Diouf", "Samb", "Kane", "Gaye", "Wade", "Dieng", "Sene", "Lo", "Toure", "Badji", "Mane", "Sy", "Mboup"]
+  cameroon:
+    first: ["Joel", "Pascal", "Christian", "Yves", "Ulrich", "Franck", "Junior", "Jean", "Arnaud", "Brice", "Herve", "Landry", "Cedric", "Steve", "Patrick", "Bertrand", "Vincent", "Olivier", "Fabrice", "Romuald", "Gael", "Emmanuel", "Hugues", "Didier"]
+    last: ["Ngando", "Essomba", "Ondoa", "Biyong", "Atangana", "Owona", "Fouda", "Nganou", "Mballa", "Tchamba", "Mbarga", "Ndjock", "Abena", "Ekotto", "Nkoulou", "Etoundi", "Ngono", "Mvogo", "Tsimi", "Kameni", "Ebanga", "Noubissi", "Tchouameni", "Zambo", "Onana", "Belinga", "Manga", "Eyenga"]
+  south_sudan:
+    first: ["Deng", "Majok", "Garang", "Mayen", "Bol", "Akech", "Kuol", "Chol", "Malual", "Manyang", "Mabior", "Thon", "Ater", "Makur", "Mading", "Aguer", "Peter", "John", "Gabriel", "Emmanuel", "Daniel", "James", "Simon", "Mathiang", "Ajak", "Biar", "Lual", "Dut", "Riak", "Yak"]
+    last: ["Deng", "Majok", "Garang", "Mayen", "Bol", "Akech", "Kuol", "Chol", "Malual", "Manyang", "Mabior", "Thon", "Ater", "Makur", "Mading", "Aguer", "Diing", "Akot", "Machar", "Ajang", "Wol", "Nyang", "Kur", "Atem", "Mangar", "Ayuel", "Jok", "Arop", "Kiir", "Majak"]
+  congo:
+    first: ["Jonathan", "Christian", "Merveille", "Glody", "Exauce", "Junior", "Patient", "Bienvenu", "Dieumerci", "Gloire", "Jordan", "Chancel", "Fiston", "Arsene", "Prince", "Herve", "Josue", "Grace", "Christ", "Destin", "Yannick", "Blessing", "Trésor", "Elie"]
+    last: ["Kabengele", "Mukendi", "Tshimanga", "Ilunga", "Kalonji", "Mbuyi", "Kasongo", "Nzita", "Mpoyi", "Lukusa", "Kabasele", "Mulumba", "Tshibangu", "Ngoy", "Kanku", "Banza", "Lubamba", "Makiese", "Mukoko", "Mbala", "Kayembe", "Ntumba", "Kalala", "Mwamba", "Bokanga", "Lokembo"]
+  mali:
+    first: ["Mamadou", "Oumar", "Sekou", "Bakary", "Seydou", "Adama", "Boubacar", "Moussa", "Souleymane", "Drissa", "Lassana", "Modibo", "Siaka", "Yacouba", "Hamidou", "Amadou", "Ousmane", "Ibrahim", "Abdoulaye", "Tiemoko"]
+    last: ["Traore", "Keita", "Coulibaly", "Diarra", "Konate", "Sissoko", "Doumbia", "Toure", "Camara", "Sidibe", "Dembele", "Kone", "Diakite", "Sangare", "Sacko", "Maiga", "Cisse", "Dicko", "Bagayoko", "Kante"]
+  serbia:
+    first: ["Nikola", "Marko", "Stefan", "Luka", "Aleksa", "Filip", "Nemanja", "Vasilije", "Uroš", "Dušan", "Lazar", "Bogdan", "Mihajlo", "Vuk", "Strahinja", "Ognjen", "Petar", "Andrija", "Milan", "Đorđe", "Vladimir", "Miloš", "Jovan", "Pavle", "Dimitrije"]
+    last: ["Jovanović", "Petrović", "Nikolić", "Marković", "Đorđević", "Stojanović", "Ilić", "Pavlović", "Milošević", "Popović", "Kovačević", "Todorović", "Stanković", "Živković", "Lazić", "Radovanović", "Vuković", "Tomić", "Mitrović", "Savić", "Ristić", "Simić", "Kostić", "Obradović", "Janković", "Đukić", "Milić", "Avramović", "Lukić", "Gajić"]
+  lithuania:
+    first: ["Matas", "Lukas", "Mantas", "Tadas", "Rokas", "Dovydas", "Arnas", "Ignas", "Nojus", "Domantas", "Jonas", "Paulius", "Kristupas", "Gytis", "Marius", "Martynas", "Deividas", "Ąžuolas", "Augustas", "Eimantas", "Laurynas", "Vytautas", "Edgaras", "Justas"]
+    last: ["Kazlauskas", "Jankauskas", "Petrauskas", "Stankevičius", "Vasiliauskas", "Žukauskas", "Butkus", "Paulauskas", "Urbonas", "Navickas", "Balčiūnas", "Kavaliauskas", "Rimkus", "Mockus", "Kairys", "Grigas", "Jucys", "Lukšys", "Bagdonas", "Šimkus", "Žemaitis", "Valaitis", "Sakalauskas", "Gudaitis"]
+  spain:
+    first: ["Pablo", "Álvaro", "Hugo", "Mario", "Daniel", "Alejandro", "Sergio", "Javier", "Iñaki", "Marc", "Pol", "Jaime", "Adrián", "Diego", "Rubén", "Guillermo", "Iker", "Nicolás", "Gonzalo", "Unai", "Jorge", "Aleix", "Oriol", "Héctor"]
+    last: ["García", "Fernández", "González", "Rodríguez", "López", "Martínez", "Sánchez", "Pérez", "Gómez", "Ruiz", "Díaz", "Hernández", "Navarro", "Moreno", "Muñoz", "Jiménez", "Romero", "Alonso", "Torres", "Domínguez", "Vázquez", "Ramos", "Gil", "Serrano", "Blanco", "Molina", "Ortega", "Castro", "Rubio", "Sanz", "Iglesias", "Garrido"]
+  germany:
+    first: ["Lukas", "Jonas", "Leon", "Finn", "Paul", "Moritz", "Niklas", "Tim", "Felix", "Maximilian", "Jan", "Julian", "Tobias", "Nils", "Ben", "Johannes", "Jakob", "Malte", "Henrik", "Luis", "Elias", "Noah", "Till", "Fabian", "Philipp", "Kilian"]
+    last: ["Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Hoffmann", "Schulz", "Koch", "Richter", "Wolf", "Krüger", "Hartmann", "Lange", "Werner", "Schmitt", "Klein", "Neumann", "Schwarz", "Zimmermann", "Braun", "Hofmann", "Schäfer", "Bauer", "Vogel", "Kaiser", "Fuchs", "Lehmann"]
+  afro_german:
+    first: ["Leon", "Noah", "Elias", "Jonas", "David", "Daniel", "Joshua", "Samuel", "Kevin", "Dennis", "Justin", "Marvin", "Jeremiah", "Jamal", "Malik", "Aaron", "Nelson", "Isaac"]
+    last: ["Mensah", "Owusu", "Asante", "Boateng", "Osei", "Agyemang", "Addo", "Okafor", "Adeyemi", "Nkemelu", "Obiora", "Kwame", "Antwi", "Danso", "Amoah", "Tetteh", "Ansah", "Frimpong", "Kamara", "Sesay", "Bonsu", "Ofori"]
+  greece:
+    first: ["Giorgos", "Nikos", "Konstantinos", "Dimitris", "Ioannis", "Vasilis", "Panagiotis", "Christos", "Alexandros", "Michalis", "Stavros", "Kostas", "Thanos", "Lefteris", "Angelos", "Spyros", "Apostolos", "Antonis", "Petros", "Stelios"]
+    last: ["Papadopoulos", "Papadakis", "Georgiou", "Nikolaidis", "Dimitriou", "Konstantinidis", "Pappas", "Karagiannis", "Vlachos", "Oikonomou", "Antonopoulos", "Mavros", "Makris", "Papageorgiou", "Lazaridis", "Ioannidis", "Christodoulou", "Kyriakou", "Athanasiou", "Petridis", "Stavrou", "Karalis", "Galanis", "Theodorou"]
+  turkey:
+    first: ["Emre", "Mehmet", "Burak", "Can", "Kerem", "Arda", "Efe", "Yusuf", "Berk", "Ege", "Ömer", "Furkan", "Alperen", "Baran", "Deniz", "Eren", "Kaan", "Onur", "Tolga", "Umut", "Yiğit", "Ozan", "Batuhan", "Mert"]
+    last: ["Yılmaz", "Kaya", "Demir", "Şahin", "Çelik", "Yıldız", "Aydın", "Öztürk", "Arslan", "Doğan", "Kılıç", "Aslan", "Korkmaz", "Özdemir", "Koç", "Kurt", "Özkan", "Şimşek", "Polat", "Erdem", "Güneş", "Aksoy", "Tekin", "Karaca"]
+  australia:
+    first: ["Jack", "Lachlan", "Cooper", "Riley", "Liam", "Mitchell", "Callum", "Hayden", "Bailey", "Jayden", "Harrison", "Flynn", "Brodie", "Josh", "Ethan", "Hamish", "Angus", "Kye", "Jett", "Darcy", "Tyson", "Will", "Lincoln", "Max"]
+    last: ["Smith", "Jones", "Williams", "Brown", "Wilson", "Taylor", "Johnson", "White", "Martin", "Anderson", "Thompson", "Nguyen", "Walker", "Harris", "Ryan", "Robinson", "Kelly", "King", "Campbell", "Mitchell", "Clarke", "O'Brien", "Kennedy", "McDonald", "Hughes", "Doyle", "Murphy", "Gallagher", "Reid", "Fraser"]
+
+# ---- heritage: family names that point to a specific background -------------------
+# The Census only says "this surname is mostly Black" or "mostly Asian". It can't
+# tell a Nigerian family (Okafor) from a Haitian one (Jean-Baptiste) from an
+# African-American one (Gadson), or a Gujarati family (Patel) from a Korean one
+# (Kim). These lists fill that gap.
+#
+# A player whose surname is on a list (and whose group is in `groups`) gets:
+#   - a first name from `first` heritage_first_share of the time, otherwise a
+#     mainstream American first name (never a creative-spelling one)
+#   - a Jr./II/III only if `suffixes: true`
+# reserve_first: true  -> those first names are ONLY used for that heritage within
+#                         the group (so no "Ravi Zheng" or "Kenji Patel")
+# default_for          -> heritage for players in that group whose surname isn't listed
+# pools                -> also count the surnames/first names of these hand-built pools
+# max_white_share      -> skip listed surnames that are also common white names
+#                         (Wade, Barry, Kane are Senegalese AND common Anglo names)
+# mainstream_max_share -> the "mainstream American" first names leave out names this
+#                         typical of the group (0.6 = no creative-spelling names for Black
+#                         families; 0.5 = no Akhilesh or Minh for Asian families)
+# auto_first_min_share -> also count any first name at least this typical of the group
+#                         (catches South Asian names that aren't on the hand list)
+# surname_patterns     -> surname endings that mark this heritage when the name isn't listed
+# mainstream_min_births -> "mainstream American" first names must be at least this common
+# first_patterns       -> first-name patterns that also belong to this heritage (Abd..., ...ullah)
+# mainstream_max_hispanic -> also leave out mainstream names this Hispanic (no "Diego Syed")
+heritage:
+  west_african:          # Nigeria, Ghana, Sierra Leone, Liberia
+    groups: [Black]
+    max_white_share: 0.4
+    heritage_first_share: 0.5
+    pools: [nigeria]
+    surnames: ["Okafor", "Okeke", "Okoro", "Nwosu", "Nwachukwu", "Nwankwo", "Eze", "Ezeh", "Obi", "Okonkwo", "Okoye", "Chukwu", "Igwe", "Uche", "Adeyemi", "Adebayo", "Adewale", "Ajayi", "Ojo", "Olawale", "Olaniyan", "Ogunleye", "Ogunbiyi", "Afolabi", "Lawal", "Balogun", "Akinola", "Oladipo", "Oyewole", "Babatunde", "Adeleke", "Ogundele", "Uzoma", "Onuoha", "Emenike", "Agu", "Ibe", "Mensah", "Boateng", "Owusu", "Osei", "Asante", "Appiah", "Yeboah", "Asare", "Agyemang", "Amoah", "Ofori", "Darko", "Acheampong", "Antwi", "Addo", "Quaye", "Kamara", "Sesay", "Bangura", "Koroma", "Conteh", "Jalloh", "Turay", "Mansaray", "Kargbo", "Tarawally"]
+    first: ["Chukwuemeka", "Chidi", "Chinedu", "Obinna", "Ikenna", "Emeka", "Nnamdi", "Uchenna", "Chibuzo", "Ifeanyi", "Kelechi", "Oluwaseun", "Olumide", "Ayodele", "Babajide", "Femi", "Gbenga", "Tunde", "Tobi", "Seun", "Dayo", "Kayode", "Ebuka", "Somto", "Kwame", "Kofi", "Kwabena", "Kwaku", "Yaw", "Kojo", "Kwasi", "Nana", "Emmanuel", "Prince", "Godwin", "Samuel"]
+  francophone_west_african:   # Senegal, Guinea, Mali, Ivory Coast, Gambia
+    groups: [Black]
+    max_white_share: 0.4
+    heritage_first_share: 0.7
+    pools: [senegal, mali]
+    surnames: ["Diallo", "Bah", "Barry", "Sow", "Ndiaye", "Diop", "Toure", "Traore", "Cisse", "Fofana", "Keita", "Camara", "Sylla", "Diakite", "Coulibaly", "Kone", "Sangare", "Doumbia", "Diarra", "Ba", "Fall", "Faye", "Gueye", "Sarr", "Mbaye", "Seck", "Thiam", "Niang", "Sall", "Dieng", "Kouyate", "Konate", "Drame", "Jallow", "Ceesay", "Njie", "Touray", "Sanneh", "Bojang"]
+    first: ["Mamadou", "Ousmane", "Abdoulaye", "Moussa", "Ibrahima", "Cheikh", "Amadou", "Aliou", "Boubacar", "Modou", "Lamine", "Souleymane", "Seydou", "Bakary", "Alpha", "Sekou", "Oumar", "Idrissa", "Pape", "Babacar", "Saliou", "Youssouf", "Adama", "Lassana", "Fode", "Ismaila", "Malick", "Demba"]
+  ethiopian_eritrean:
+    groups: [Black]
+    max_white_share: 0.4
+    heritage_first_share: 0.6
+    surnames: ["Abebe", "Kebede", "Bekele", "Tadesse", "Tesfaye", "Desta", "Kidane", "Yohannes", "Haile", "Gebre", "Gebremedhin", "Tekle", "Woldemariam", "Mengistu", "Girma", "Alemu", "Getachew", "Assefa", "Negash", "Berhane", "Tesfamariam", "Habte", "Ghebremichael", "Asfaw", "Lemma"]
+    first: ["Abel", "Dawit", "Yonas", "Natnael", "Kaleb", "Henok", "Biniam", "Abenezer", "Eyob", "Robel", "Mikias", "Yared", "Nahom", "Bereket", "Amanuel", "Dagim", "Kidus", "Fitsum", "Elias", "Samuel"]
+  somali:
+    groups: [Black]
+    max_white_share: 0.4
+    heritage_first_share: 0.85
+    surnames: ["Mohamud", "Warsame", "Jama", "Abdullahi", "Abdi", "Farah", "Osman", "Guled", "Hirsi", "Aden", "Nur", "Duale", "Egal", "Mohamed", "Ahmed", "Omar", "Hussein", "Abdirahman", "Ismail", "Yusuf", "Elmi", "Dahir", "Barre", "Samatar"]
+    first: ["Abdi", "Abdirahman", "Abdullahi", "Mohamed", "Ahmed", "Hassan", "Mohamud", "Yusuf", "Liban", "Ayub", "Hamza", "Ilyas", "Abdirizak", "Abdiaziz", "Mustafa", "Khalid", "Ismail", "Omar", "Hussein", "Bashir", "Zakaria", "Said", "Ali", "Jibril"]
+  east_african:          # Kenya, Uganda, Tanzania
+    groups: [Black]
+    max_white_share: 0.4
+    heritage_first_share: 0.3
+    surnames: ["Mwangi", "Kinuthia", "Kamau", "Njoroge", "Otieno", "Odhiambo", "Ochieng", "Mutua", "Kiprop", "Kipchoge", "Cheruiyot", "Okello", "Mugisha", "Ssali", "Wafula", "Onyango", "Omondi", "Kariuki", "Waweru", "Mutiso", "Nyambura", "Kibet", "Musoke", "Kato"]
+    first: ["Brian", "Kevin", "Dennis", "Collins", "Ian", "Kelvin", "Allan", "Victor", "Moses", "Elvis", "Felix", "Edwin", "Kiprono", "Baraka", "Jabari", "Juma", "Kamau", "Otieno", "Daudi"]
+  south_sudanese:
+    groups: [Black]
+    max_white_share: 0.4
+    heritage_first_share: 0.45
+    pools: [south_sudan]
+    surnames: []
+    first: []
+  haitian:
+    groups: [Black]
+    max_white_share: 0.4
+    heritage_first_share: 0.45
+    suffixes: true
+    surname_prefixes: ["Jean-", "Pierre-", "Saint-", "Petit-", "Fils-"]
+    surnames: ["Desir", "Chery", "Edouard", "Calixte", "Belizaire", "Mondesir", "Hyppolite", "Ulysse", "Bienaime", "Louissaint", "Saintil", "Dorvil", "Exantus", "Jeanty", "Dorsainvil", "Fleurimond", "Toussaint", "Celestin", "Desrosiers", "Dorcely", "Estime", "Florestal", "Guerrier", "Lamour", "Metellus", "Previlon", "Saintfort", "Sylvain", "Thelusma", "Valcourt", "Vilsaint", "Volcy", "Pierre", "Dorlus", "Exume", "Fevrier", "Jeudy", "Lafortune", "Philistin"]
+    first: ["Jean", "Peterson", "Woodley", "Stanley", "Ricardo", "Emmanuel", "Kervens", "Widler", "Frantz", "Wilson", "Jameson", "Mackenson", "Kevens", "Steeve", "Wilner", "Fritz", "Herby", "Evens", "Woodson", "Kenley", "Junior", "Dieuveut", "Wesley", "Jeffrey"]
+  south_asian:           # Indian (Hindu, Sikh, Christian), Nepali, Sri Lankan
+    groups: [Asian]
+    mainstream_max_share: 0.5
+    mainstream_max_hispanic: 0.4
+    heritage_first_share: 0.8
+    reserve_first: true
+    auto_first_min_share: 0.8
+    surname_patterns: ["^.{4,}(reddy|appa|aiah|aiya|wala|walla|iwal|swal|kar|esh|jee|deo|vala|swamy|murthy|krishnan|nathan|raman|rajan|gopal|gopalan|subramanian|shetty|dhar|preet|inder|(?<!t)ani|iah|alli|anty|anti)$"]
+    surnames: ["Patel", "Shah", "Singh", "Kumar", "Sharma", "Gupta", "Reddy", "Rao", "Mehta", "Desai", "Joshi", "Iyer", "Nair", "Menon", "Pillai", "Das", "Bose", "Sen", "Ghosh", "Banerjee", "Chatterjee", "Mukherjee", "Malhotra", "Kapoor", "Khanna", "Sethi", "Arora", "Bhatia", "Chopra", "Grewal", "Sandhu", "Gill", "Dhillon", "Sidhu", "Brar", "Thakkar", "Parikh", "Trivedi", "Pandya", "Bhatt", "Agarwal", "Jain", "Verma", "Mishra", "Pandey", "Tiwari", "Yadav", "Subramanian", "Krishnan", "Raman", "Venkatesh", "Srinivasan", "Narayanan", "Ramachandran", "Natarajan", "Rajan", "Shankar", "Murthy", "Prasad", "Naidu", "Chandra", "Mohan", "Varghese", "Kurian", "Cherian", "Chacko", "Dutta", "Saxena", "Srivastava", "Kulkarni", "Patil", "Deshpande", "Naik", "Shetty", "Kamath", "Hegde", "Amin", "Modi", "Dalal", "Vyas", "Soni", "Chauhan", "Rathod", "Parmar", "Solanki", "Chaudhari", "Bhakta", "Lal", "Bajwa", "Sohal", "Atwal", "Agrawal", "Mathai", "Dhanoa", "Mohanty", "Bhandari", "Gandhi", "Mehra", "Chawla", "Ahuja", "Anand", "Goyal", "Goel", "Mittal", "Bansal", "Garg", "Singhal", "Kohli", "Bedi", "Sahni", "Suri", "Talwar", "Walia", "Bajaj", "Luthra", "Mehrotra", "Bhalla", "Juneja", "Ghai", "Uppal", "Basra", "Johal", "Sangha", "Chahal", "Randhawa", "Toor", "Virk", "Cheema", "Aulakh", "Pannu", "Thakur", "Rana", "Bhatnagar", "Kaul", "Raina", "Dhawan", "Khurana", "Tandon", "Wadhwa"]
+    first: ["Arjun", "Rohan", "Aarav", "Aryan", "Dev", "Nikhil", "Rahul", "Rishi", "Karan", "Varun", "Vikram", "Siddharth", "Aditya", "Ankit", "Amit", "Ajay", "Vijay", "Sanjay", "Raj", "Ravi", "Neel", "Krish", "Krishna", "Pranav", "Ishaan", "Ishan", "Akash", "Aakash", "Anish", "Ashwin", "Arnav", "Atharv", "Ayush", "Aayush", "Dhruv", "Harsh", "Jai", "Kabir", "Kunal", "Manav", "Mihir", "Om", "Omkar", "Param", "Parth", "Pranay", "Raghav", "Rajat", "Ronak", "Rushil", "Sahil", "Sanjit", "Saurabh", "Shaan", "Shiv", "Shreyas", "Shyam", "Tanmay", "Tejas", "Uday", "Vihaan", "Vivek", "Yash", "Yuvraj", "Advik", "Aadi", "Akhil", "Amogh", "Keshav", "Abhinav", "Abhishek", "Aniket", "Arush", "Gaurav", "Hari", "Kartik", "Karthik", "Madhav", "Mayank", "Naveen", "Nishant", "Pratik", "Rohit", "Sachin", "Sai", "Sumit", "Suraj", "Tarun", "Vishal", "Manish", "Arav", "Reyansh", "Aarush", "Darsh", "Navin", "Nitin", "Sandeep", "Satvik", "Shlok", "Viraj", "Shrey", "Vedant", "Ved", "Rudra", "Anirudh", "Gautam", "Harpreet", "Gurpreet", "Jaskaran", "Jasraj", "Gurveer", "Manveer", "Arjan", "Ekam"]
+  south_asian_muslim:    # Pakistani, Bangladeshi, Indian Muslim
+    groups: [Asian]
+    mainstream_max_share: 0.5
+    mainstream_max_hispanic: 0.4
+    heritage_first_share: 0.85
+    reserve_first: true
+    first_patterns: ["^abd", "^muh", "^moh", "^moha", "ullah$", "uddin$", "^wahab", "^emaad", "^danish$", "^zee", "^shah"]
+    surnames: ["Khan", "Ahmed", "Ahmad", "Ali", "Hussain", "Hossain", "Rahman", "Chowdhury", "Siddiqui", "Qureshi", "Malik", "Butt", "Chaudhry", "Mirza", "Sheikh", "Syed", "Islam", "Uddin", "Miah", "Akhtar", "Iqbal", "Raza", "Haider", "Abbasi", "Hashmi", "Rizvi", "Javed", "Aziz", "Karim", "Bhatti", "Mahmood", "Rashid", "Hasan", "Alam", "Haque", "Kabir", "Sarker", "Talukder", "Bhuiyan", "Ansari", "Shaikh", "Memon", "Baig", "Zaidi", "Naqvi", "Jafri", "Farooqui", "Saeed", "Anwar", "Aslam", "Nawaz", "Tanveer", "Zafar", "Faruque", "Zaman", "Farooq", "Mian", "Shahid", "Javaid", "Arshad", "Akram", "Riaz", "Tahir", "Sohail", "Nadeem", "Haq", "Hoque", "Molla", "Kazi", "Quadri", "Hashim", "Rehman", "Ashraf", "Asghar", "Abid", "Latif", "Masood", "Younis", "Yousaf", "Sattar"]
+    first: ["Mohammed", "Muhammad", "Mohammad", "Ahmed", "Ahmad", "Ali", "Omar", "Umar", "Hassan", "Hussain", "Ibrahim", "Yusuf", "Yousuf", "Zain", "Zayn", "Ayaan", "Rayan", "Hamza", "Hamzah", "Bilal", "Faisal", "Imran", "Irfan", "Adnan", "Arham", "Zaid", "Saad", "Talha", "Abdullah", "Abdul", "Abdur", "Rehan", "Rizwan", "Shoaib", "Usman", "Waleed", "Zubair", "Zubayr", "Fahad", "Farhan", "Haris", "Areeb", "Ishraq", "Naeem", "Mahib", "Anas", "Sami", "Qasim", "Farooq", "Abbas", "Adil", "Aman", "Asad", "Danyal", "Daniyal", "Ehsan", "Mustafa", "Tariq", "Yahya", "Rafay", "Huzaifa", "Musa", "Rayyan", "Raafay", "Hafiz", "Ayub", "Zeeshan", "Shaheed", "Hamid", "Rafi", "Arif", "Junaid", "Sufyan", "Saif", "Taha", "Ammar", "Uzair", "Idris", "Yasin", "Zakariya", "Shayan", "Aariz", "Aayan", "Zayaan", "Mikail", "Nabeel", "Owais", "Rameez", "Wasif", "Furqan", "Hammad", "Hasnain", "Jibran", "Kashif", "Muneeb", "Mubashir", "Ismail", "Abdulrahman", "Abdurrahman", "Ayan", "Zayan", "Raza", "Shahzaib", "Azaan", "Hadi", "Mahir", "Mehdi", "Amir", "Amer", "Ameer", "Karim", "Kareem", "Samir"]
+  filipino:
+    groups: [Asian]
+    mainstream_max_share: 0.5
+    heritage_first_share: 0.35
+    suffixes: true
+    surnames: ["Santos", "Reyes", "Cruz", "Bautista", "Villanueva", "Ramos", "Aquino", "Castillo", "Mendoza", "Garcia", "Flores", "Gonzales", "Dela Cruz", "De Leon", "Pascual", "Manalo", "Mercado", "Navarro", "Tolentino", "Soriano", "Domingo", "Dizon", "Macaraeg", "Lopez", "Fernandez", "Del Rosario", "Ocampo", "Salazar", "Aguilar", "Torres", "Agustin", "Panganiban", "Mangubat", "Magbanua", "Sison", "Pangilinan", "Dimaculangan", "Macapagal", "Lacson"]
+    first: ["Angelo", "Carlo", "Christian", "Mark", "Jerome", "Joshua", "Rafael", "Miguel", "Jericho", "Jasper", "Kristian", "Paolo", "Marco", "Gabriel", "Adrian", "Jayson", "Ramon", "Renz", "Kyle", "Justin", "Jhon", "Jomar", "Ervin", "Arvin"]
+  east_asian:            # Chinese, Korean, Vietnamese, Japanese, Hmong...
+    groups: [Asian]
+    mainstream_max_share: 0.5
+    mainstream_max_hispanic: 0.4
+    default_for: Asian
+    heritage_first_share: 0.25
+    reserve_first: true
+    suffixes: true
+    surnames: []
+    first: ["Kaito", "Haruto", "Kenji", "Hiroshi", "Takumi", "Ryota", "Daiki", "Sora", "Yuki", "Kenta", "Minh", "Duc", "Huy", "Khoa", "Bao", "Tuan", "Quang", "Phuc", "Thien", "Hieu", "Tri", "Vinh", "Jun", "Jin", "Min", "Hyun", "Joon", "Sung", "Tae", "Jae", "Seung", "Wei", "Jian", "Hao", "Zhi", "Jiahao", "Zihan", "Haoran", "Yuxuan", "Hoang", "Thanh", "Dat", "Khang", "Kiet", "Nhat", "Hung", "Pao", "Tou", "Xeng", "Kou", "Tin", "Htoo", "Lam", "Long", "Nam", "Phong", "Tam", "Toan", "Tung", "Danh", "Hai", "Hoa", "Khai", "Loc", "Luan", "Nhan", "Phat", "Thinh", "Thuan", "Tien", "Trung", "Viet", "Vuong", "Aung", "Kyaw", "Myo", "Zaw", "Hein", "Thant", "Moe", "Paw", "Ler", "Hser", "Chue", "Pheng", "Seng", "Yeng", "Fue", "Meng", "Shou", "Xai", "Yer", "Minjun", "Seojun", "Jiho", "Doyun", "Hajun", "Junseo", "Eunwoo", "Siwoo", "Jiwoo", "Yejun", "Minho", "Jinwoo", "Seungmin", "Jaehyun", "Donghyun", "Sungmin", "Jihoon", "Hyunwoo", "Yifan", "Zhiyuan", "Junjie", "Zixuan", "Yichen", "Chenxi", "Mingyu", "Hanyu", "Zeyu", "Tianyu", "Yiming", "Siyuan", "Kaiwen", "Ren", "Riku", "Yuto", "Sota", "Hinata", "Kota", "Shota", "Yusuke", "Daisuke", "Takeshi", "Taiga", "Ryu", "Ryusei"]

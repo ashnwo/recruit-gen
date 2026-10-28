@@ -4,7 +4,9 @@
 #            City weights = roughly how many recruits come from there (bigger
 #            metros and known hotbeds weigh more). eth_mult nudges a state's
 #            ethnicity odds, e.g. Hawaii and Utah produce far more Polynesian players.
-# countries: name, cities, ethnicity {group: share of that country's recruits}
+# countries: name, cities, ethnicity {group: share of that country's recruits},
+#            name_pools {group: {pool: weight}} - us_black/us_white/us_hispanic/us_asian
+#            use the big US tables; any other pool is in names/names.yaml
 # schools:   patterns for made-up high school names
 
 states:
@@ -205,66 +207,82 @@ countries:
     name: "Canada"
     cities: {Toronto: 6, Mississauga: 3, Brampton: 3, Ottawa: 2, Montreal: 3, Vancouver: 2, Hamilton: 1, Calgary: 1, Edmonton: 1, Winnipeg: 1, Scarborough: 2, Pickering: 1}
     ethnicity: {Black: 0.58, White: 0.37, Asian: 0.05}
+    name_pools: {Black: {us_black: 0.75, francophone_african: 0.15, south_sudan: 0.1}, White: {us_white: 0.75, quebec: 0.25}, Asian: {us_asian: 1}}
   AUS:
     name: "Australia"
     cities: {Melbourne: 5, Sydney: 4, Brisbane: 3, Perth: 2, Adelaide: 2, Canberra: 1, "Gold Coast": 1, Cairns: 1}
     ethnicity: {White: 0.62, Black: 0.22, Polynesian: 0.12, Asian: 0.04}
+    name_pools: {White: {australia: 0.85, us_white: 0.15}, Black: {south_sudan: 0.8, us_black: 0.2}, Polynesian: {polynesian: 1}, Asian: {us_asian: 1}}
   FRA:
     name: "France"
     cities: {Paris: 6, Lyon: 2, Marseille: 1, Lille: 1, Nanterre: 1, Strasbourg: 1, Bordeaux: 1, "Le Mans": 1, Villeurbanne: 1, Cholet: 1}
     ethnicity: {Black: 0.6, White: 0.4}
+    name_pools: {Black: {francophone_african: 1}, White: {france: 1}}
   NGA:
     name: "Nigeria"
     cities: {Lagos: 6, Abuja: 3, Ibadan: 2, Enugu: 2, "Port Harcourt": 2, Kano: 1, Owerri: 1, "Benin City": 1}
     ethnicity: {Black: 1}
+    name_pools: {Black: {nigeria: 1}}
   SEN:
     name: "Senegal"
     cities: {Dakar: 6, Thies: 2, "Saint-Louis": 1, Kaolack: 1, Ziguinchor: 1}
     ethnicity: {Black: 1}
+    name_pools: {Black: {senegal: 1}}
   CMR:
     name: "Cameroon"
     cities: {Yaounde: 4, Douala: 4, Bafoussam: 1, Garoua: 1}
     ethnicity: {Black: 1}
+    name_pools: {Black: {cameroon: 1}}
   SSD:
     name: "South Sudan"
     cities: {Juba: 4, Wau: 1, Malakal: 1, Bor: 1, Rumbek: 1}
     ethnicity: {Black: 1}
+    name_pools: {Black: {south_sudan: 1}}
   COD:
     name: "DR Congo"
     cities: {Kinshasa: 6, Lubumbashi: 2, Kisangani: 1, Goma: 1}
     ethnicity: {Black: 1}
+    name_pools: {Black: {congo: 1}}
   MLI:
     name: "Mali"
     cities: {Bamako: 5, Sikasso: 1, Segou: 1, Kayes: 1}
     ethnicity: {Black: 1}
+    name_pools: {Black: {mali: 1}}
   SRB:
     name: "Serbia"
     cities: {Belgrade: 6, "Novi Sad": 2, Nis: 1, Kragujevac: 1, Cacak: 1}
     ethnicity: {White: 1}
+    name_pools: {White: {serbia: 1}}
   LTU:
     name: "Lithuania"
     cities: {Vilnius: 3, Kaunas: 4, Klaipeda: 1, Siauliai: 1, Panevezys: 1}
     ethnicity: {White: 1}
+    name_pools: {White: {lithuania: 1}}
   ESP:
     name: "Spain"
     cities: {Madrid: 4, Barcelona: 4, Valencia: 2, Malaga: 1, Bilbao: 1, Seville: 1, Badalona: 1, Zaragoza: 1}
     ethnicity: {White: 0.85, Black: 0.15}
+    name_pools: {White: {spain: 1}, Black: {francophone_african: 0.5, senegal: 0.3, nigeria: 0.2}}
   DEU:
     name: "Germany"
     cities: {Berlin: 4, Munich: 2, Hamburg: 2, Frankfurt: 2, Cologne: 1, Ulm: 1, Bamberg: 1, Ludwigsburg: 1, Bonn: 1}
     ethnicity: {White: 0.72, Black: 0.28}
+    name_pools: {White: {germany: 1}, Black: {afro_german: 1}}
   GRC:
     name: "Greece"
     cities: {Athens: 5, Thessaloniki: 2, Patras: 1, Piraeus: 1}
     ethnicity: {White: 1}
+    name_pools: {White: {greece: 1}}
   TUR:
     name: "Turkey"
     cities: {Istanbul: 5, Ankara: 2, Izmir: 2, Bursa: 1, Antalya: 1}
     ethnicity: {White: 1}
+    name_pools: {White: {turkey: 1}}
   GBR:
     name: "England"
     cities: {London: 6, Manchester: 2, Birmingham: 2, Leeds: 1, Bristol: 1, Liverpool: 1}
     ethnicity: {Black: 0.6, White: 0.4}
+    name_pools: {Black: {nigeria: 0.45, australia: 0.35, us_black: 0.2}, White: {australia: 0.7, us_white: 0.3}}
 
 schools:
   # {city} = hometown, {name} = a namesake, {dir} = a direction, {saint} = a saint/bishop name

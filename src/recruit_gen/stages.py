@@ -2,8 +2,6 @@
 enriched. Recruits stay plain dicts the whole way through; the last stage
 (validate_dedup) checks each one against the Recruit contract."""
 
-import bisect
-import itertools
 import math
 from collections import defaultdict
 from pathlib import Path
@@ -16,6 +14,8 @@ from scipy.stats import norm, skewnorm
 from recruit_gen.models import (
     ETHNICITIES, PhysicalsConfig, Recruit, SportConfig, StarBand, TalentConfig,
 )
+from recruit_gen.names import name_book, name_class
+from recruit_gen.sampling import WeightedPicker
 
 
 def read_yaml(path: Path):
@@ -31,30 +31,23 @@ def read_yaml(path: Path):
 
 
 def load_sport_config(path: Path) -> SportConfig:
-    """Read a sport's YAML file plus the shared places file next to it
-    (shared/places.yaml) into one checked config. Any problem = clear message + stop."""
+    """Read a sport's YAML file plus the shared files next to it (shared/places.yaml,
+    shared/names/names.yaml) into one checked config. Any problem = clear message + stop."""
     path = Path(path)
     data = read_yaml(path) or {}
-    places_path = path.parent / "shared" / "places.yaml"
-    data = {**data, "places": read_yaml(places_path)}
+    shared = path.parent / "shared"
+    names_data = read_yaml(shared / "names" / "names.yaml") or {}
+    data = {**data, "places": read_yaml(shared / "places.yaml"),
+            "names": {**names_data, "folder": shared / "names"}}
+    for table in ("first_names.csv", "surnames.csv"):
+        if not (shared / "names" / table).exists():
+            print(f"Name table not found: {shared / 'names' / table}")
+            raise SystemExit(1)
     try:
         return SportConfig.model_validate(data)
     except ValidationError as e:
-        print(f"Bad config in {path} (or {places_path}):\n{e}")
+        print(f"Bad config in {path} (or the shared files in {shared}):\n{e}")
     raise SystemExit(1)
-
-
-class WeightedPicker:
-    """Fast repeated weighted draws from {option: weight}. Weights don't need to add to 1."""
-
-    def __init__(self, weights: dict):
-        items = [(k, w) for k, w in weights.items() if w > 0]
-        self.keys = [k for k, _ in items]
-        self.cum = list(itertools.accumulate(w for _, w in items))
-
-    def pick(self, rng):
-        x = rng.random() * self.cum[-1]
-        return self.keys[min(bisect.bisect_right(self.cum, x), len(self.keys) - 1)]
 
 
 def class_shape(count: int, rng, config: SportConfig, top: bool = False) -> list[dict]:
@@ -278,16 +271,19 @@ def development(recruits: list[dict], rng) -> list[dict]:
     return recruits
 
 
-def names(recruits: list[dict], rng) -> list[dict]:
-    for r in recruits:
-        r["name"] = "bobby smith"   # stub (Piece 5)
+def names(recruits: list[dict], rng, config: SportConfig, distinctive: str = "normal") -> list[dict]:
+    """Realistic, unique names that fit each player's background (see names.py).
+    distinctive = low / normal / high: how often creative African-American names come up."""
+    if config.names is None:
+        raise ValueError("No name settings loaded (configs/shared/names/names.yaml).")
+    name_class(recruits, rng, name_book(config.names, distinctive), config.places)
     return recruits
 
 
 def validate_dedup(recruits: list[dict], rng) -> list[dict]:
     """Last stage: every recruit must pass the Recruit contract.
     model_dump() keeps only the contract's fields, so working values like
-    scout_z, city and international drop out here. Duplicate checks and rejects come in Piece 7."""
+    scout_z, city, international and name_pool drop out here. Duplicate checks and rejects come in Piece 7."""
     checked = []
     for i, r in enumerate(recruits, start=1):
         try:

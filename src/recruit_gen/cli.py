@@ -56,6 +56,7 @@ def generate(
     config: Optional[Path] = None,
     out: Path = Path("recruits.csv"),
     top: bool = typer.Option(False, "--top", help="Best N in the country instead of a realistic mix."),
+    distinctive: str = typer.Option("normal", help="How often creative names appear: low, normal or high."),
 ):
     if count < 1:
         typer.echo("--count must be at least 1.")
@@ -66,7 +67,10 @@ def generate(
         typer.echo(f"--count can be at most {pool} for {sport_config.sport} "
                    f"(that's how many players are ranked; see pool_size in the config).")
         raise typer.Exit(1)
-    recruits = run_pipeline(count, seed, sport_config, top=top)
+    if distinctive not in ("low", "normal", "high"):
+        typer.echo("--distinctive must be low, normal or high.")
+        raise typer.Exit(1)
+    recruits = run_pipeline(count, seed, sport_config, top=top, distinctive=distinctive)
     write_csv(recruits, out)
     stars = {s: sum(r["stars"] == s for r in recruits) for s in (5, 4, 3, 2)}
     mix = ", ".join(f"{s}-star {n}" for s, n in stars.items() if n)

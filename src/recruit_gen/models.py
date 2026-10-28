@@ -1,4 +1,5 @@
-from typing import Annotated, Literal
+from pathlib import Path
+from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, Field, TypeAdapter, field_validator, model_validator
 
@@ -21,6 +22,9 @@ class Recruit(BaseModel):
     rank: int = Field(ge=1)              # national rank (scouted)
     stars: int = Field(ge=1, le=5)
     rating: float = Field(ge=0, le=101)  # 247-style rating, e.g. 98.6
+    first_name: str = Field(min_length=1)   # the name he goes by (CJ, Trey, DeAndre...)
+    last_name: str = Field(min_length=1)
+    suffix: str                          # "", Jr., II, III, IV
     position: str
     pos_rank: int = Field(ge=1)          # rank among this class's players at his position
     height: int = Field(ge=60, le=96)    # inches; outside 5'0"-8'0" = something broke
@@ -32,7 +36,6 @@ class Recruit(BaseModel):
     state_rank: int = Field(ge=1)        # rank among this class's players from the same state/country
     high_school: str
     development: str
-    name: str
     true_rank: int = Field(ge=1)         # where his REAL talent would rank him (hidden from scouts)
     verdict: str                         # Steal / Underrated / As Advertised / Overrated / Bust
 
@@ -99,6 +102,7 @@ class CountryInfo(BaseModel):
     name: str
     cities: dict[str, Weight] = Field(min_length=1)
     ethnicity: dict[Ethnicity, Share]
+    name_pools: dict[Ethnicity, dict[str, Weight]] = {}   # group -> {pool: weight}
 
     @field_validator("ethnicity")
     @classmethod
@@ -123,6 +127,84 @@ class PlacesData(BaseModel):
     states: dict[str, StateInfo] = Field(min_length=1)
     countries: dict[str, CountryInfo] = {}
     schools: SchoolNames
+
+
+# ---- names (Piece 5): configs/shared/names/names.yaml ------------------------------
+US_NAME_POOLS = {"us_white", "us_black", "us_hispanic", "us_asian"}
+
+
+class FitRules(BaseModel):
+    min_group_births: float = Field(ge=0)
+    min_group_share: Share
+    surname_min_group_people: float = Field(ge=0)
+    surname_min_group_share: Share
+    cross_mix: Share
+    polynesian_us_min_births: float = Field(ge=0)
+
+
+class DistinctiveRules(BaseModel):
+    distinctive_share: Share
+    distinctive_boost: dict[Literal["low", "normal", "high"], Annotated[float, Field(ge=0)]]
+    style_rate: Share
+    camel_share: Share
+    prefixes: list[str]
+    roots: list[str]
+
+
+class NicknameRules(BaseModel):
+    initials_rate: Share
+    initials: dict[str, Weight]
+    dotted_share: Share
+    trey_rate: Share
+
+
+class NamePool(BaseModel):
+    first: list[str] = Field(min_length=1)
+    last: list[str] = Field(min_length=1)
+
+
+class Heritage(BaseModel):
+    groups: list[Ethnicity] = Field(min_length=1)
+    heritage_first_share: Share
+    pools: list[str] = []                # also use these hand-built pools' names
+    surnames: list[str] = []
+    surname_prefixes: list[str] = []
+    first: list[str] = []
+    reserve_first: bool = False          # these first names are ONLY for this heritage
+    suffixes: bool = False               # allow Jr./II/III
+    default_for: Optional[Ethnicity] = None
+    max_white_share: Optional[Share] = None        # skip listed surnames that are common white names
+    mainstream_max_share: Share = 0.6              # "mainstream" first names stay below this group share
+    mainstream_min_births: float = Field(default=1000, ge=0)   # ...and are at least this common
+    mainstream_max_hispanic: Optional[Share] = None            # ...and aren't this Hispanic
+    auto_first_min_share: Optional[Share] = None   # also count first names at least this typical
+    surname_patterns: list[str] = []               # regexes for unlisted surnames
+    first_patterns: list[str] = []                 # regexes for first names that belong here
+
+
+class NamesConfig(BaseModel):
+    folder: Path                         # where first_names.csv / surnames.csv live (set by the loader)
+    fit: FitRules
+    distinctive: DistinctiveRules
+    sharpen: dict[Literal["white", "black", "hispanic", "asian"], Annotated[float, Field(ge=0)]]
+    nicknames: NicknameRules
+    suffix_rates: dict[str, dict[str, Share]]
+    never_use: list[str] = []
+    famous_names: list[str] = []
+    rejoin_prefixes: dict[str, str] = {}   # prefix -> separator ("-" or ". ")
+    rejoin_remainders: list[str] = []
+    pools: dict[str, NamePool] = {}
+    heritage: dict[str, Heritage] = {}
+
+    @model_validator(mode="after")
+    def heritage_pools_exist(self):
+        for name, h in self.heritage.items():
+            missing = [p for p in h.pools if p not in self.pools]
+            if missing:
+                raise ValueError(f"heritage '{name}' uses unknown pools: {', '.join(missing)}")
+        if "default" not in self.suffix_rates:
+            raise ValueError("suffix_rates needs a 'default' entry")
+        return self
 
 
 # ---- where a sport's players come from (Piece 4) ---------------------------------
@@ -198,6 +280,7 @@ class SportConfig(BaseModel):
     origins: OriginsConfig
     prep: PrepConfig
     places: PlacesData                   # filled in from configs/shared/places.yaml by the loader
+    names: Optional[NamesConfig] = None  # filled in from configs/shared/names/names.yaml by the loader
 
     @model_validator(mode="after")
     def origins_exist_in_places(self):
@@ -205,6 +288,18 @@ class SportConfig(BaseModel):
         missing += [c for c in self.origins.countries if c not in self.places.countries]
         if missing:
             raise ValueError(f"origin codes not found in places.yaml: {', '.join(missing)}")
+        return self
+
+    @model_validator(mode="after")
+    def name_pools_exist(self):
+        if self.names is None:
+            return self
+        known = US_NAME_POOLS | {"polynesian"} | set(self.names.pools)
+        for code, country in self.places.countries.items():
+            for group, pools in country.name_pools.items():
+                missing = [p for p in pools if p not in known]
+                if missing:
+                    raise ValueError(f"{code} {group} uses unknown name pools: {', '.join(missing)}")
         return self
 
     @model_validator(mode="after")
