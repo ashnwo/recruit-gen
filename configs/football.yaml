@@ -3,6 +3,9 @@
 # Adding this sport took no new code paths: football is just data.
 game: "EA College Football 26/27 (Dynasty) and Madden"   # shown in the JSON export
 sport: football
+# Football players are HIGH SCHOOL RECRUITS: no draft board or current team; their
+# high school is their team. Ages are high school senior ages.
+ages: {17: 0.62, 18: 0.36, 19: 0.02}
 
 # Positions: share, height curve, weight formula, ethnicity mix, roles, archetypes...
 #   elite_tilt      - below 0 = rarely ranked near the top (kickers almost never 5-stars)

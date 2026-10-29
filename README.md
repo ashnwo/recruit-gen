@@ -1,12 +1,12 @@
 # Recruit Generator
 
-Makes realistic fictional high school recruits for sports video games and saves them as
-a spreadsheet (CSV) you read while building players in the game:
+Makes realistic fictional players for sports video games and saves them as a spreadsheet
+(CSV) you read while building players in the game:
 
-| Sport | Built for | How you use the sheet |
-|---|---|---|
-| Basketball | NBA 2K26 (MyNBA draft classes) | Create the players in the draft class editor |
-| Football | EA College Football 26/27 (Dynasty), Madden | Re-skin the game's own top recruits to match the sheet (CFB has no import) |
+| Sport | Who they are | Built for | How you use the sheet |
+|---|---|---|---|
+| Basketball | **NBA draft prospects** (college, overseas, G League...) | NBA 2K26 (MyNBA draft classes) | Create the players in the draft class editor |
+| Football | **High school recruits** headed to college | EA College Football 26/27 (Dynasty) | Re-skin the game's own top recruits to match the sheet (CFB has no import) |
 
 Every player hangs together: his body fits his position, his ratings fit his body and
 talent, his name fits his background, and his hometown fits where real recruits come from.
@@ -26,9 +26,10 @@ uv run pytest    # optional: runs the checks (should all pass)
 
 ```bash
 uv run python -m recruit_gen.cli                        # asks you questions, one at a time
-uv run python -m recruit_gen.cli --count 80             # 80 basketball recruits, a realistic mix
-uv run python -m recruit_gen.cli --count 25 --top       # the 25 best in the country
-uv run python -m recruit_gen.cli --sport football --count 40 --top
+uv run python -m recruit_gen.cli --count 60             # top 60 of the draft board (a full draft)
+uv run python -m recruit_gen.cli --count 80 --mix       # 80 prospects spread across the whole board
+uv run python -m recruit_gen.cli --sport football --count 40          # 40 recruits, a realistic mix
+uv run python -m recruit_gen.cli --sport football --count 25 --top    # the 25 best in the country
 ```
 
 Each run prints a quick table, a class check, and where the files went:
@@ -38,6 +39,9 @@ output/basketball_80_seed123456.csv     the edit sheet (one row per player, one 
 output/basketball_80_seed123456.json    the same class arranged for writing backstories
 ```
 
+**Top or mix:** `--top` = the best N; `--mix` = a realistic spread. Basketball defaults to
+`--top` (a draft class is the top of the board); football defaults to `--mix`.
+
 **Same class again:** every run prints its seed. Add `--seed 123456` to get the exact same class.
 
 ## Asking for specific players
@@ -46,8 +50,9 @@ Lock any field. Everything you leave out is filled in to match.
 
 ```bash
 uv run python -m recruit_gen.cli --position guard --ethnicity white --count 3
-uv run python -m recruit_gen.cli --position C --stars 5 --count 3 --top
-uv run python -m recruit_gen.cli --state TX --stars 4-5 --count 10
+uv run python -m recruit_gen.cli --position C --projection lottery --count 3
+uv run python -m recruit_gen.cli --state TX --projection 1st,2nd --count 10
+uv run python -m recruit_gen.cli --sport football --state TX --stars 4-5 --count 10
 uv run python -m recruit_gen.cli --height 7-0 --development late
 uv run python -m recruit_gen.cli --first Jaylen --last Okafor --position PF
 uv run python -m recruit_gen.cli --sport football --position OL --ethnicity polynesian --count 4
@@ -58,7 +63,8 @@ uv run python -m recruit_gen.cli --sport football --position OL --ethnicity poly
 | `--position` | `PG`, `C`, `PG,SG`, or a group: `guard`, `wing`, `forward`, `big` (football: `OL`, `DL`, `DB`, `skill`...) |
 | `--ethnicity` | `black`, `white`, `hispanic`, `asian`, `polynesian` |
 | `--state` (or `--country`, `--from`) | `TX`, `Georgia`, `Nigeria` |
-| `--stars` | `5`, `4-5`, `4+`, `3,4` |
+| `--projection` (basketball) | `lottery`, `1st`, `2nd`, `undrafted`, or `1st,2nd` |
+| `--stars` (football) | `5`, `4-5`, `4+`, `3,4` |
 | `--archetype` | `"Rim Protector"`, `"Speed Rusher"` (see the sport's settings file) |
 | `--development` | `Early Bloomer`, `Steady Climber`, `Late Bloomer`, `Raw Project` (or just `late`) |
 | `--height` / `--weight` | `6-5` or `77` / `215` |
@@ -69,22 +75,27 @@ he's almost always a center; lock "Polynesian" and he's most likely from Hawaii,
 California or Texas. With `--top`, a position lock gives the best players at that
 position, ranked where they'd really rank (the top 3 centers aren't simply #1-#3).
 
+In basketball, stars are a prospect's **high school** recruiting stars (background), so
+`--stars` is refused there with a pointer to `--projection`.
+
 Impossible requests are refused with a reason ("No PG plays as a Rim Protector").
 Unusual ones get a heads-up and are made anyway, because you asked.
 
 ### Many custom players at once (a "board")
 
-Make a CSV with one request per row; blank cells are filled in. See `examples/board.csv`:
+Make a CSV with one request per row; blank cells are filled in. See `examples/board.csv`
+(basketball) and `examples/football_board.csv` (football uses a `stars` column instead):
 
 ```
-count,position,ethnicity,state,stars,archetype,development,height,weight,first,last
-1,PG,,TX,5,Floor General,,,,,
-2,guard,white,,4-5,,,,,,
-1,C,,,5,Rim Protector,,7-2,,,
+count,position,ethnicity,state,projection,archetype,development,height,weight,first,last
+1,PG,,TX,lottery,Floor General,,,,,
+2,guard,white,,1st,,,,,,
+1,C,,,lottery,Rim Protector,,7-2,,,
 ```
 
 ```bash
 uv run python -m recruit_gen.cli --spec-file examples/board.csv
+uv run python -m recruit_gen.cli --sport football --spec-file examples/football_board.csv
 ```
 
 ### Other options
@@ -103,7 +114,10 @@ uv run python -m recruit_gen.cli --spec-file examples/board.csv
 
 ## What's in a player
 
-- **Rank, stars, rating:** national rank in a talent pyramid (a few 5-stars, many 2-3 stars), 247-style rating
+- **Football - rank, stars, rating:** national recruit rank in a talent pyramid (a few 5-stars, many 2-3 stars), 247-style rating, age 17-18
+- **Basketball - the draft:** big-board rank, projected round (Lottery, 1st, 2nd, Undrafted) and projected pick (1-60)
+- **Basketball - where he plays now:** team, level, class year and age. Most play at real NCAA schools (top prospects land at bigger programs more often). The rest play pro: overseas clubs (most international prospects stay home), NBL Next Stars, Overtime Elite, G League. Top prospects are mostly freshmen (one-and-done); late bloomers stay in school longer.
+- **Basketball - high school stars:** how he was rated as a recruit. Early bloomers were rated higher back then, late bloomers lower, so some stars "rose" and some "slid". International prospects have none (`-`).
 - **Name:** from real birth records (boys born 2005-2010) and Census surnames, checked to fit his background. Heritage families get matching first names (Okafor, Diallo, Jean-Baptiste, Patel, Khan...). International players get names from their country.
 - **Position, archetype, second position**
 - **Body:** height and weight that fit the position (no undersized linemen), wingspan (basketball), 40-yard dash (football)
@@ -118,14 +132,17 @@ uv run python -m recruit_gen.cli --spec-file examples/board.csv
    his position, no duplicate names). A player who fails is listed in `<file>_rejects.csv`
    with the reason and replaced by a new player at the same rank. If more than 5% fail,
    the run stops and names the problem, because that means a setting is off.
-2. **Class check.** Compares the class's ethnicity, positions, stars and international share
-   to what your settings promise. A `!` means a difference bigger than chance explains.
+2. **Class check.** Compares the class's ethnicity, positions, stars (basketball: projected
+   round) and international share to what your settings promise. A `!` means a difference bigger than chance explains.
 
 ## The JSON file (for backstories)
 
 For a separate Claude project that writes player backstories. Each recruit is grouped into
-`bio`, `body`, `scouting` and `ratings`, with his top 3 `strengths` and `weaknesses` and
-`story_hints` (plain facts like "Ranked #14, but his real talent is closer to #2"). The
+`bio`, `body`, `career` (team, level, class year, age), `scouting` (including projected
+round and pick) and `ratings`, with his top 3 `strengths` and `weaknesses` and
+`story_hints` (plain facts like "Ranked #14, but his real talent is closer to #2",
+"Only a 3-star recruit in high school; now projected as a lottery pick. A big riser.",
+"Freshman at Houston, expected to be one-and-done."). The
 `hidden_truth` section is what scouts don't know: good for foreshadowing.
 
 ---
@@ -136,8 +153,8 @@ Everything realistic about the players lives in settings files, not in the code:
 
 | File | What's in it |
 |---|---|
-| `configs/basketball.yaml` | Positions (share, height, weight, ethnicity, roles, archetypes), talent and star bands, where players come from, prep schools, development, ratings, archetypes, size limits |
-| `configs/football.yaml` | Same format for football |
+| `configs/basketball.yaml` | Positions (share, height, weight, ethnicity, roles, archetypes), talent and star bands, where players come from, prep schools, development, ratings, archetypes, size limits, plus `draft` (projected rounds) and `teams` (paths, real college lists by tier, class years, pro teams, overseas clubs) |
+| `configs/football.yaml` | Same format for football, plus `ages` (no draft or teams: they're recruits) |
 | `configs/shared/places.yaml` | States, countries, hometowns, ethnicity nudges by state, high school name patterns |
 | `configs/shared/names/names.yaml` | Name rules, creative-name styling, nicknames, suffixes, heritage lists, international name pools, famous names to avoid |
 | `configs/shared/names/*.csv` | The big name tables (from public SSA and Census data) |
@@ -160,7 +177,8 @@ src/recruit_gen/
   cli.py        command line, question mode, output files
   pipeline.py   runs the stages in order: build_board / build_class / run_pipeline
   stages.py     class shape -> positions -> origins -> archetypes -> physicals ->
-                development -> talent -> backgrounds -> ratings -> names
+                development -> talent (+ draft board) -> backgrounds -> ratings ->
+                names -> careers (team, class year, age)
   locks.py      custom requests: parsing, the joint table, request checks
   names.py      name engine         ratings.py   ratings, OVR, potential
   checks.py     clean-up check      report.py    class check vs. targets

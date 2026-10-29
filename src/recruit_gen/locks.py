@@ -6,7 +6,8 @@ Locks don't just get stamped on at the end. They shape the rest of the player:
     Utah and California more likely - the way real recruiting classes look
   - locking a height makes positions that fit that height more likely (7'0" -> C)
   - locking an archetype limits positions to ones that play that style
-  - locking stars limits which national ranks he can have
+  - locking stars limits which national ranks he can have (draft sports lock the
+    projected round instead: stars there are high school background)
 """
 from __future__ import annotations
 
@@ -44,6 +45,7 @@ class Locks(BaseModel):
     ethnicity: Optional[Ethnicity] = None
     origin: Optional[str] = None                 # state code (TX) or country code (NGA)
     stars: Optional[tuple[int, ...]] = None
+    projection: Optional[tuple[str, ...]] = None   # draft sports: Lottery / 1st round / ...
     archetype: Optional[str] = None
     development: Optional[str] = None
     height: Optional[int] = None                 # inches
@@ -108,8 +110,10 @@ def parse_origin(text: str, config: SportConfig) -> str:
     raise LockError(f"Unknown state or country '{text}'. Use a code like TX or a name like Nigeria.")
 
 
-def parse_stars(text: str) -> tuple[int, ...]:
-    """'5', '4-5', '4+', '3,4' -> star levels."""
+def parse_stars(text: str, config: Optional[SportConfig] = None) -> tuple[int, ...]:
+    """'5', '4-5', '4+', '3,4' -> star levels. Draft sports refuse: stars there are background."""
+    if config is not None and config.draft is not None:
+        raise LockError(no_stars_in_draft(config))
     t = str(text).replace(" ", "").replace("*", "").lower().replace("stars", "").replace("star", "")
     try:
         if t.endswith("+"):
@@ -124,6 +128,19 @@ def parse_stars(text: str) -> tuple[int, ...]:
     if not out or any(not 1 <= s <= 5 for s in out):
         raise LockError(f"Stars must be between 1 and 5, got '{text}'.")
     return out
+
+
+def parse_projection(text: str, config: SportConfig) -> tuple[str, ...]:
+    """'lottery', '1st', 'first round', '2nd,undrafted' -> projection labels."""
+    if config.draft is None:
+        raise LockError(f"{config.sport} isn't a draft class, so there's no projection. Use --stars instead.")
+    words = {"first": "1st", "second": "2nd", "1": "1st", "2": "2nd", "round": ""}
+    labels = [b.label for b in config.draft.projection]
+    out = []
+    for part in str(text).split(","):
+        t = " ".join(words.get(w, w) for w in part.strip().lower().split()).strip()
+        out.append(parse_choice(t, labels, "projection"))
+    return tuple(dict.fromkeys(out))
 
 
 def parse_height(text) -> int:
@@ -158,14 +175,15 @@ def parse_choice(text: str, options, what: str) -> str:
 
 def build_locks(config: SportConfig, position=None, ethnicity=None, origin=None, stars=None,
                 archetype=None, development=None, height=None, weight=None,
-                first=None, last=None) -> Locks:
+                first=None, last=None, projection=None) -> Locks:
     """Turn typed text (any of it can be blank) into checked Locks."""
     blank = lambda v: v is None or str(v).strip() == ""   # noqa: E731
     return Locks(
         position=None if blank(position) else parse_position(position, config),
         ethnicity=None if blank(ethnicity) else parse_ethnicity(ethnicity),
         origin=None if blank(origin) else parse_origin(origin, config),
-        stars=None if blank(stars) else parse_stars(stars),
+        stars=None if blank(stars) else parse_stars(stars, config),
+        projection=None if blank(projection) else parse_projection(projection, config),
         archetype=None if blank(archetype) else parse_choice(archetype, list(config.archetypes), "archetype"),
         development=None if blank(development) else parse_choice(
             development, list(config.development.trajectories) if config.development else [], "development"),
@@ -178,8 +196,8 @@ def build_locks(config: SportConfig, position=None, ethnicity=None, origin=None,
 
 def read_spec_file(path: Path, config: SportConfig) -> list[Spec]:
     """A CSV 'board': one request per row. Columns (all optional except count):
-    count, position, ethnicity, state (or origin/country), stars, archetype,
-    development, height, weight, first, last"""
+    count, position, ethnicity, state (or origin/country), stars (or projection for
+    draft sports), archetype, development, height, weight, first, last"""
     specs = []
     with open(path, newline="", encoding="utf-8-sig") as fh:
         for line, row in enumerate(csv.DictReader(fh), start=2):
@@ -192,7 +210,8 @@ def read_spec_file(path: Path, config: SportConfig) -> list[Spec]:
                                     origin=row.get("state") or row.get("origin") or row.get("country"),
                                     stars=row.get("stars"), archetype=row.get("archetype"),
                                     development=row.get("development"), height=row.get("height"),
-                                    weight=row.get("weight"), first=row.get("first"), last=row.get("last"))
+                                    weight=row.get("weight"), first=row.get("first"), last=row.get("last"),
+                                    projection=row.get("projection"))
             except (LockError, ValueError) as e:
                 raise LockError(f"{Path(path).name} line {line}: {e}") from None
             specs.append(Spec(count=count, locks=locks))
@@ -286,6 +305,25 @@ def match_share(locks: Locks, config: SportConfig) -> float:
     return share
 
 
+def no_stars_in_draft(config: SportConfig) -> str:
+    options = ", ".join(b.label.lower() for b in config.draft.projection)
+    return (f"{config.sport} players are draft prospects: their stars are high school background. "
+            f"To pick where a prospect ranks now, use --projection ({options}).")
+
+
+def allowed_ranks(locks: Locks, config: SportConfig) -> list[int]:
+    """Ranks a player with these locks can have (star lock, or projection lock for draft sports)."""
+    ranks = star_ranks(locks.stars, config) if config.draft is None else list(range(1, config.talent.pool_size + 1))
+    if locks.projection and config.draft is not None:
+        keep, first = set(), 1
+        for band in config.draft.projection:
+            if band.label in locks.projection:
+                keep |= set(range(first, band.last_rank + 1))
+            first = band.last_rank + 1
+        ranks = [r for r in ranks if r in keep]
+    return ranks
+
+
 def star_ranks(stars: Optional[tuple[int, ...]], config: SportConfig) -> list[int]:
     """National ranks that carry these star levels (all ranks if no star lock)."""
     t = config.talent
@@ -315,9 +353,12 @@ def check_request(spec: Spec, config: SportConfig) -> list[str]:
             plays = [p for p, c in config.positions.items() if lk.archetype in c.archetypes]
             raise LockError(f"No {'/'.join(allowed)} plays as a {lk.archetype}. "
                             f"That style is for: {', '.join(plays)}.")
-    ranks = star_ranks(lk.stars, config)
+    if lk.stars and config.draft is not None:
+        raise LockError(no_stars_in_draft(config))
+    ranks = allowed_ranks(lk, config)
     if spec.count > len(ranks):
-        what = f"{'/'.join(map(str, lk.stars))}-star" if lk.stars else "ranked"
+        what = (f"{'/'.join(lk.projection)}" if lk.projection else
+                f"{'/'.join(map(str, lk.stars))}-star" if lk.stars else "ranked")
         raise LockError(f"Only {len(ranks)} {what} players exist in a class; you asked for {spec.count}.")
     if lk.shapes_identity and not joint_table(lk, config):
         raise LockError(f"No realistic player matches: {lk.describe()}. "

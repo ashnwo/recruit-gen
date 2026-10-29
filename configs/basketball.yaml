@@ -1,5 +1,6 @@
 # Basketball settings. Change numbers here, not in the Python code.
 game: "NBA 2K26 (MyNBA draft classes)"   # shown in the JSON export
+# Basketball players are NBA DRAFT PROSPECTS (see draft: and teams: at the bottom).
 sport: basketball
 
 # Each position:
@@ -276,3 +277,93 @@ position_groups:
   big: [PF, C]
   big man: [PF, C]
   center: [C]
+
+# ---------------------------------------------------------------------------
+# NBA draft framing: rank = the draft big board.
+#   default_top    - a draft class is the best prospects, so --count 80 means the
+#                    top 80 (use --mix for a random spread of ranked prospects)
+#   projection     - projected round by big-board rank
+#   picks          - ranks 1..picks get a projected pick number
+#   high_school    - stars and rating are BACKGROUND: how he was rated as a high
+#                    school recruit. shift = how his high school ranking compares
+#                    to now (early bloomers were rated higher back then, late
+#                    bloomers lower), in bell-curve units; noise = how loosely the
+#                    two rankings line up. International players have no stars.
+# ---------------------------------------------------------------------------
+draft:
+  default_top: true
+  picks: 60
+  projection:
+    - {label: "Lottery", last_rank: 14}
+    - {label: "1st round", last_rank: 30}
+    - {label: "2nd round", last_rank: 60}
+    - {label: "Undrafted", last_rank: 1000}
+  high_school:
+    shift: {"Early Bloomer": 0.5, "Steady Climber": 0.0, "Late Bloomer": -0.6, "Raw Project": -0.3}
+    noise: 0.5
+
+# ---------------------------------------------------------------------------
+# Where each prospect plays now.
+#   paths         - chance of each path by where he's from: US (any state), a country
+#                   code, or "abroad" (any other country)
+#   college_tiers - real NCAA programs. share = how many ranked prospects the tier
+#                   produces; tilt > 0 = more of the TOP prospects (blue bloods),
+#                   tilt < 0 = more of the lower-ranked ones
+#   class_years   - college year. tilt > 0 = more common near the top (one-and-done
+#                   freshmen); development nudges it (late bloomers stay longer)
+#   college_age   - typical age by year (one year older 25% of the time, younger 5%)
+#   pro_ages      - ages for players on non-college paths
+#   pro_teams     - teams for non-college paths; "Overseas pro" is listed by country,
+#                   and countries without their own league use "other"
+# ---------------------------------------------------------------------------
+teams:
+  paths:
+    US:     {"College": 0.93, "Overtime Elite": 0.03, "G League": 0.02, "NBL Next Stars": 0.02}
+    CAN:    {"College": 0.90, "Overtime Elite": 0.04, "G League": 0.03, "Overseas pro": 0.03}
+    AUS:    {"College": 0.35, "NBL Next Stars": 0.55, "Overseas pro": 0.10}
+    GBR:    {"College": 0.55, "Overseas pro": 0.45}
+    abroad: {"College": 0.38, "Overseas pro": 0.57, "NBL Next Stars": 0.05}
+  college_tiers:
+    blue_blood:
+      share: 0.10
+      tilt: 0.9
+      teams: ["Duke", "Kentucky", "Kansas", "North Carolina", "UCLA", "Arizona", "Gonzaga", "Baylor", "Villanova", "Michigan State", "UConn", "Houston", "Auburn", "Alabama", "Arkansas", "Tennessee"]
+    power:
+      share: 0.50
+      tilt: 0.2
+      teams: ["Purdue", "Indiana", "Illinois", "Michigan", "Ohio State", "Iowa", "Wisconsin", "Maryland", "Rutgers", "Nebraska", "Minnesota", "Penn State", "Northwestern", "USC", "Oregon", "Washington", "Texas", "Texas Tech", "TCU", "Oklahoma", "Oklahoma State", "Kansas State", "Iowa State", "Cincinnati", "BYU", "Utah", "Arizona State", "Colorado", "West Virginia", "Florida", "Georgia", "LSU", "Ole Miss", "Mississippi State", "Missouri", "South Carolina", "Texas A&M", "Vanderbilt", "Virginia", "Virginia Tech", "Louisville", "Miami", "NC State", "Wake Forest", "Syracuse", "Clemson", "Florida State", "Georgia Tech", "Notre Dame", "Pittsburgh", "Boston College", "Stanford", "California", "SMU", "Marquette", "Creighton", "Xavier", "St. John's", "Seton Hall", "Providence", "Georgetown", "Butler", "Memphis", "San Diego State"]
+    mid_major:
+      share: 0.30
+      tilt: -0.4
+      teams: ["Saint Mary's", "Dayton", "VCU", "Saint Louis", "Wichita State", "Florida Atlantic", "Drake", "Loyola Chicago", "Nevada", "UNLV", "New Mexico", "Boise State", "Colorado State", "Utah State", "Murray State", "Belmont", "Davidson", "Richmond", "George Mason", "Charleston", "UAB", "North Texas", "Western Kentucky", "Liberty", "Grand Canyon", "Santa Clara", "San Francisco", "Furman", "Toledo", "Akron", "Kent State", "Ohio", "Vermont", "Yale", "Princeton", "Oral Roberts", "South Dakota State", "Saint Joseph's", "Temple"]
+    low_major:
+      share: 0.10
+      tilt: -0.9
+      teams: ["Norfolk State", "Grambling State", "Texas Southern", "Southern", "Jackson State", "Morgan State", "Howard", "NC Central", "Southern Utah", "Eastern Washington", "Weber State", "Montana", "Long Beach State", "UC Irvine", "UC Santa Barbara", "Cal State Fullerton", "Hampton"]
+  class_years:
+    Fr: {share: 0.30, tilt: 0.9}
+    So: {share: 0.25, tilt: 0.2}
+    Jr: {share: 0.23, tilt: -0.3}
+    Sr: {share: 0.22, tilt: -0.6}
+  development_nudge:
+    "Early Bloomer": {Fr: 1.4}
+    "Late Bloomer": {Jr: 1.4, Sr: 1.7}
+    "Raw Project": {Fr: 1.3}
+  college_age: {Fr: 19, So: 20, Jr: 21, Sr: 22}
+  pro_ages: {18: 0.15, 19: 0.45, 20: 0.30, 21: 0.10}
+  pro_teams:
+    "Overtime Elite": ["OTE City Reapers", "OTE YNG Dreamerz", "OTE Blue Checks", "OTE Diamond Doves", "OTE Jelly Fam", "OTE Cold Hearts"]
+    "G League": ["Capital City Go-Go", "Santa Cruz Warriors", "South Bay Lakers", "Mexico City Capitanes", "Osceola Magic", "Valley Suns", "Rio Grande Valley Vipers", "College Park Skyhawks"]
+    "NBL Next Stars": ["Melbourne United", "Sydney Kings", "Perth Wildcats", "Adelaide 36ers", "Brisbane Bullets", "Illawarra Hawks", "New Zealand Breakers", "Cairns Taipans", "Tasmania JackJumpers", "South East Melbourne Phoenix"]
+  overseas_clubs:
+    FRA: ["ASVEL", "Paris Basketball", "Metropolitans 92", "AS Monaco", "Cholet Basket", "JL Bourg", "Le Mans Sarthe", "Nanterre 92"]
+    ESP: ["Real Madrid", "FC Barcelona", "Baskonia", "Valencia Basket", "Unicaja", "Joventut Badalona", "Gran Canaria", "Bilbao Basket"]
+    SRB: ["Partizan", "Crvena Zvezda", "Mega Basket", "FMP", "Borac Cacak"]
+    LTU: ["Zalgiris Kaunas", "Rytas Vilnius", "Lietkabelis", "Neptunas"]
+    GRC: ["Olympiacos", "Panathinaikos", "AEK Athens", "PAOK", "Aris"]
+    TUR: ["Fenerbahce", "Anadolu Efes", "Galatasaray", "Besiktas", "Turk Telekom"]
+    DEU: ["Bayern Munich", "ALBA Berlin", "ratiopharm Ulm", "Bamberg Baskets", "MHP Riesen Ludwigsburg"]
+    GBR: ["London Lions", "Manchester Basketball"]
+    AUS: ["Melbourne United", "Sydney Kings", "Perth Wildcats", "Adelaide 36ers"]
+    CAN: ["Real Madrid", "ASVEL", "Mega Basket"]
+    other: ["Real Madrid", "FC Barcelona", "Baskonia", "Joventut Badalona", "ASVEL", "Paris Basketball", "Cholet Basket", "Mega Basket", "Partizan", "Bayern Munich"]

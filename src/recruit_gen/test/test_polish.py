@@ -14,7 +14,7 @@ from recruit_gen.report import Line, class_report, format_report, position_targe
 def cli(**changes):
     """Call the command the way the terminal would, with every option spelled out."""
     options = dict(sport="basketball", count=None, seed=None, top=False, position=None, ethnicity=None,
-                   origin=None, stars=None, archetype=None, development=None, height=None, weight=None,
+                   origin=None, stars=None, projection=None, archetype=None, development=None, height=None, weight=None,
                    first=None, last=None, spec_file=None, distinctive="normal", out=None, show=0,
                    json_out=True, report=True, config=None)
     options.update(changes)
@@ -26,7 +26,7 @@ def cli(**changes):
 def test_targets_add_up(sport, request):
     config = request.getfixturevalue(sport)
     report = class_report(run_pipeline(300, 1, config), config, top=False, custom=False)
-    for name in ("Ethnicity", "Positions", "Stars"):
+    for name in ("Ethnicity", "Positions", "Projection" if config.draft else "Stars"):
         assert abs(sum(line.target for line in report[name]) - 1) < 0.02, name
 
 

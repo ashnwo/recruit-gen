@@ -41,7 +41,9 @@ def story_hints(r: dict, config: SportConfig) -> list[str]:
         hints.append(f"International prospect from {where}.")
     prep = config.prep.schools
     if r["high_school"] in prep:
-        hints.append(f"Left home ({where}) to play at {r['high_school']}.")
+        hints.append(f"Left home ({where}) to play at {r['high_school']}"
+                     + (" in high school." if config.draft else "."))
+    hints += career_hints(r, config)
     verdict, rank, true_rank = r["verdict"], r["rank"], r["true_rank"]
     if verdict == "Steal":
         hints.append(f"Ranked #{rank}, but his real talent is closer to #{true_rank}: a hidden gem scouts missed.")
@@ -57,12 +59,42 @@ def story_hints(r: dict, config: SportConfig) -> list[str]:
               "Steady Climber": "Improving at a steady pace."}
     if r["development"] in growth:
         hints.append(growth[r["development"]])
-    if r["stars"] == 5 and r["pos_rank"] == 1:
+    best = (r.get("projected_pick") or 999) <= 30 if config.draft else r["stars"] == 5
+    if best and r["pos_rank"] == 1:
         hints.append(f"The top-ranked {r['position']} in this class.")
     if r["state_rank"] == 1 and r["origin"] not in config.places.countries:
-        hints.append(f"The top-ranked recruit from {r['origin']} in this class.")
+        hints.append(f"The top-ranked {'prospect' if config.draft else 'recruit'} from {r['origin']} in this class.")
     if r.get("suffix"):
         hints.append(f"Named after a family member ({r['first_name']} {r['last_name']} {r['suffix']}).")
+    return hints
+
+
+def career_hints(r: dict, config: SportConfig) -> list[str]:
+    """Draft classes: how his high school ranking compares to now, and where he plays."""
+    if config.draft is None:
+        return []
+    hints, proj, stars = [], r["projection"], r["stars"]
+    now = {"Lottery": "as a lottery pick", "1st round": "as a 1st-round pick", "2nd round": "as a 2nd-round pick",
+           "Undrafted": "to go undrafted"}.get(proj, proj.lower())
+    early = proj in [b.label for b in config.draft.projection[:2]]          # lottery / 1st round
+    if stars is not None and stars <= 3 and early:
+        hints.append(f"Only a {stars}-star recruit in high school; now projected {now}. A big riser.")
+    elif stars == 5 and not early:
+        hints.append(f"A 5-star recruit in high school, but now projected {now}. His stock has slipped.")
+    elif stars is not None:
+        hints.append(f"A {stars}-star recruit in high school; now projected {now}.")
+    level, team, year = r.get("level"), r.get("team"), r.get("class_year")
+    if level == "College":
+        if year == "Fr" and early:
+            hints.append(f"Freshman at {team}, expected to be one-and-done.")
+        elif year == "Sr":
+            hints.append(f"Senior at {team}: a four-year college player.")
+        else:
+            hints.append(f"{ {'Fr': 'Freshman', 'So': 'Sophomore', 'Jr': 'Junior'}.get(year, year)} at {team}.")
+    elif level == "Overseas pro":
+        hints.append(f"Already a pro, playing for {team} (age {r['age']}).")
+    elif level:
+        hints.append(f"Skipped college to play for {team} ({level}).")
     return hints
 
 
@@ -71,7 +103,7 @@ def lore_record(r: dict, config: SportConfig) -> dict:
     ordered = sorted(keys.items(), key=lambda kv: (-kv[1], kv[0]))
     return {
         "rank": r["rank"],
-        "stars": r["stars"],
+        "stars": r["stars"],             # draft classes: high school recruiting stars (background)
         "rating": r["rating"],
         "name": {"first": r["first_name"], "last": r["last_name"], "suffix": r["suffix"],
                  "full": " ".join(x for x in (r["first_name"], r["last_name"], r["suffix"]) if x)},
@@ -82,7 +114,12 @@ def lore_record(r: dict, config: SportConfig) -> dict:
                 "high_school": r["high_school"]},
         "body": {"height_in": r["height"], "height": r["height_ft"], "weight_lbs": r["weight"],
                  "wingspan_in": r["wingspan"], "wingspan": r["wingspan_ft"] or None, "forty": r["forty"]},
-        "scouting": {"national_rank": r["rank"], "position_rank": r["pos_rank"], "state_rank": r["state_rank"],
+        "career": ({"team": r["team"], "level": r["level"], "class_year": r["class_year"] or None,
+                    "age": r["age"]} if r.get("team") else
+                   {"age": r["age"]} if r.get("age") else None),
+        "scouting": {"national_rank": r["rank"], "position_rank": r["pos_rank"],
+                     "projection": r.get("projection") or None, "projected_pick": r.get("projected_pick"),
+                     "state_rank": r["state_rank"],
                      "development": r["development"], "growth": r["growth"], "dev_trait": r["dev_trait"] or None,
                      "hidden_truth": {"true_rank": r["true_rank"], "verdict": r["verdict"]}},
         "ratings": {"ovr": r["ovr"], "potential": r["potential"],
@@ -103,7 +140,9 @@ def lore_json(recruits: list[dict], config: SportConfig, seed: int, top: bool, r
             "mode": "top" if top else "realistic mix",
             "requests": requests,
             "made_on": date.today().isoformat(),
-            "note": "hidden_truth is what scouts don't know; use it for foreshadowing, not as public info.",
+            "note": "hidden_truth is what scouts don't know; use it for foreshadowing, not as public info."
+                    + (" These are draft prospects: rank is the big board, stars are from high school."
+                       if config.draft else " These are high school recruits."),
         },
         "recruits": [lore_record(r, config) for r in recruits],
     }

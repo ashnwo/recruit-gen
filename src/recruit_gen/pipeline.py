@@ -6,7 +6,7 @@ from recruit_gen.models import SportConfig
 from recruit_gen.names import name_book, name_class
 from recruit_gen.stages import (
     class_shape, origins, positions, archetypes, physicals, development,
-    talent, backgrounds, ratings, names, rank_within,
+    talent, backgrounds, ratings, names, careers, rank_within,
 )
 
 # Stages that build one player at a time (the clean-up check reuses these to
@@ -29,6 +29,7 @@ def build_board(specs: list[Spec], seed: int, config: SportConfig, top: bool = F
     for stage in PLAYER_STAGES:                        # positions -> origins -> ... -> ratings
         recruits = stage(recruits, rng, config)
     recruits = names(recruits, rng, config, distinctive)   # needs ethnicity + origin
+    recruits = careers(recruits, rng, config)              # team, class year, age
 
     def rebuild(failed: dict, kept: list[dict]) -> dict:
         """A brand-new player at the same national rank, with the same locks."""
@@ -36,7 +37,7 @@ def build_board(specs: list[Spec], seed: int, config: SportConfig, top: bool = F
         for stage in PLAYER_STAGES:
             new = stage(new, rng, config)
         name_class(new, rng, name_book(config.names, distinctive), config.places, taken=kept)
-        return new[0]
+        return careers(new, rng, config)[0]
 
     result = validate_dedup(recruits, config, rebuild)    # clean-up check: last line of defense
     rank_within(result.recruits, "position", "pos_rank")  # replacements may change these

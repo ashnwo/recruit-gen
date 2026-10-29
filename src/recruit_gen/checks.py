@@ -86,8 +86,8 @@ def problem_kind(reason: str) -> str:
 
 def reject_row(r: dict, reasons: list[str], attempt: int) -> dict:
     """What gets written to the rejects file: who it was, why, and which try."""
-    keep = ("rank", "stars", "position", "archetype", "first_name", "last_name", "height", "weight",
-            "wingspan", "ovr", "potential", "hometown")
+    keep = ("rank", "stars", "projection", "position", "archetype", "first_name", "last_name", "height", "weight",
+            "wingspan", "ovr", "potential", "hometown", "team")
     return {"attempt": attempt, **{k: r.get(k, "") for k in keep}, "reasons": "; ".join(reasons)}
 
 

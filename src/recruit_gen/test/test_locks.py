@@ -38,11 +38,16 @@ def test_words_people_type(basketball):
 
 @pytest.mark.parametrize("field, value, hint", [
     ("position", "QB", "PG"), ("ethnicity", "martian", "black"), ("origin", "Atlantis", "TX"),
-    ("stars", "seven", "4-5"), ("archetype", "Wizard", "Rim Protector"), ("height", "tall", "6-5"),
+    ("projection", "top ten", "Lottery"), ("archetype", "Wizard", "Rim Protector"), ("height", "tall", "6-5"),
 ])
 def test_bad_input_explains_itself(basketball, field, value, hint):
     with pytest.raises(LockError, match=hint):
         build_locks(basketball, **{field: value})
+
+
+def test_bad_stars_explain_themselves(football):
+    with pytest.raises(LockError, match="4-5"):
+        build_locks(football, stars="seven")
 
 
 # ---- requests that can't be met ---------------------------------------------------
@@ -56,9 +61,19 @@ def test_impossible_combination(basketball):
         check_request(Spec(1, build_locks(basketball, origin="Serbia", ethnicity="polynesian")), basketball)
 
 
-def test_more_five_stars_than_exist(basketball):
-    with pytest.raises(LockError, match="Only 25 5-star"):
-        check_request(Spec(30, build_locks(basketball, stars="5")), basketball)
+def test_more_five_stars_than_exist(football):
+    with pytest.raises(LockError, match="Only 32 5-star"):
+        check_request(Spec(40, build_locks(football, stars="5")), football)
+
+
+def test_more_lottery_picks_than_exist(basketball):
+    with pytest.raises(LockError, match="Only 14 Lottery"):
+        check_request(Spec(20, build_locks(basketball, projection="lottery")), basketball)
+
+
+def test_draft_sports_refuse_star_locks(basketball):
+    with pytest.raises(LockError, match="--projection"):
+        build_locks(basketball, stars="5")
 
 
 def test_full_name_locked_means_one_player(basketball):
@@ -80,7 +95,7 @@ def test_unusual_lock_gets_a_warning_not_a_refusal(basketball):
     ({"ethnicity": "white"}, lambda r: r["ethnicity"] == "White"),
     ({"origin": "GA"}, lambda r: r["origin"] == "GA" and r["hometown"].endswith(", GA")),
     ({"origin": "Nigeria"}, lambda r: r["origin"] == "NGA" and r["hometown"].endswith("Nigeria")),
-    ({"stars": "4-5"}, lambda r: r["stars"] in (4, 5)),
+    ({"projection": "1st,2nd"}, lambda r: r["projection"] in ("1st round", "2nd round")),
     ({"archetype": "Point Forward"}, lambda r: r["archetype"] == "Point Forward" and r["position"] in ("SF", "PF")),
     ({"development": "Raw Project"}, lambda r: r["development"] == "Raw Project"),
     ({"height": "6-9"}, lambda r: r["height"] == 81),
@@ -129,9 +144,15 @@ def test_top_centers_are_spread_through_the_rankings(basketball):
     assert ranks[0] <= 25                                   # but the best center is near the top
 
 
-def test_star_lock_in_top_mode(basketball):
-    ranks = [r["rank"] for r in make(basketball, n=10, seed=9, top=True, stars="4")]
-    assert ranks == list(range(26, 36))                     # the best 4-stars are #26-#35
+def test_star_lock_in_top_mode(football):
+    locks = build_locks(football, stars="4")
+    ranks = [r["rank"] for r in run_pipeline(10, 9, football, top=True, locks=locks)]
+    assert ranks == list(range(33, 43))                     # the best 4-stars are #33-#42
+
+
+def test_projection_lock_in_top_mode(basketball):
+    ranks = [r["rank"] for r in make(basketball, n=10, seed=9, top=True, projection="1st")]
+    assert ranks == list(range(15, 25))                     # the best non-lottery 1st-rounders: #15-#24
 
 
 def test_same_seed_same_custom_class(basketball):
@@ -156,7 +177,7 @@ def test_board_file(basketball):
 
 def test_bad_board_row_names_the_line(basketball, tmp_path):
     f = tmp_path / "board.csv"
-    f.write_text("count,position,stars\n1,PG,5\n2,QB,4\n")
+    f.write_text("count,position,projection\n1,PG,lottery\n2,QB,1st\n")
     with pytest.raises(LockError, match="line 3"):
         read_spec_file(f, basketball)
 
@@ -172,11 +193,16 @@ def test_default_output_names(tmp_path, monkeypatch):
 def test_summary_table(basketball):
     table = summary_table(run_pipeline(20, 12, basketball), show=5)
     lines = table.split("\n")
-    assert len(lines) == 2 + 5 + 1 and "more in the CSV" in lines[-1]   # header, rule, 5 rows, "more"
+    assert len(lines) == 2 + 5 + 1 + 1                    # header, rule, 5 rows, "more", star note
+    assert "more in the CSV" in lines[-2] and "high school" in lines[-1]
+    assert "Proj" in lines[0] and "Team" in lines[0]
 
 
 def test_wizard_turns_answers_into_options():
-    answers = iter(["basketball", "guard", "white", "TX", "", "3", "y", "77"])
+    answers = iter(["basketball", "guard", "white", "TX", "lottery", "3", "", "77"])
     a = wizard(ask=lambda text, default="": next(answers) or default)
     assert a == {"sport": "basketball", "position": "guard", "ethnicity": "white", "origin": "TX",
-                 "stars": "", "count": "3", "top": True, "seed": "77"}
+                 "projection": "lottery", "count": "3", "top": True, "seed": "77"}   # draft: top by default
+    answers = iter(["football", "QB", "", "", "5", "", "", ""])
+    a = wizard(ask=lambda text, default="": next(answers) or default)
+    assert a["stars"] == "5" and a["count"] == "1" and a["top"] is False

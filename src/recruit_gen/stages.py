@@ -12,9 +12,9 @@ from pydantic import ValidationError
 from scipy.stats import norm, skewnorm
 
 from recruit_gen.models import (
-    ETHNICITIES, PhysicalsConfig, SportConfig, StarBand, TalentConfig,
+    COLLEGE, ETHNICITIES, OVERSEAS, PhysicalsConfig, SportConfig, StarBand, TalentConfig,
 )
-from recruit_gen.locks import Locks, ethnicity_mix_for, joint_table, match_share, star_ranks
+from recruit_gen.locks import Locks, allowed_ranks, ethnicity_mix_for, joint_table, match_share
 from recruit_gen.names import name_book, name_class
 from recruit_gen.ratings import frame, rate
 from recruit_gen.sampling import WeightedPicker
@@ -76,7 +76,7 @@ def class_shape(count: int, rng, config: SportConfig, top: bool = False,
     t = config.talent
     locks = locks or NO_LOCKS
     taken = taken or set()
-    allowed = [r for r in star_ranks(locks.stars, config) if r not in taken]
+    allowed = [r for r in allowed_ranks(locks, config) if r not in taken]
     if count > len(allowed):
         raise ValueError(f"Can't make {count} recruits: only {len(allowed)} matching ranked spots are left "
                          f"(pool_size in the config is {t.pool_size}).")
@@ -294,9 +294,10 @@ def talent(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
     Where that true talent would rank him nationally decides steal / bust / as advertised."""
     t = config.talent
     for r in recruits:
-        band, _ = star_band(r["rank"], t.stars)
-        r["stars"] = band.stars
-        r["rating"] = rating_for(r["rank"], t.stars)
+        if config.draft is None:
+            band, _ = star_band(r["rank"], t.stars)
+            r["stars"] = band.stars
+            r["rating"] = rating_for(r["rank"], t.stars)
         # How hard he is to scout: international players and raw prospects are harder.
         traj = config.development.trajectories[r["development"]] if r.get("development") else None
         error = t.scout_error * (t.international_error_mult if r.get("international") else 1.0)
@@ -306,9 +307,31 @@ def talent(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
         r["true_z"] = true_z
         r["true_rank"] = max(1, math.ceil(t.population * norm.sf(true_z)))
         r["verdict"] = verdict_for(r["true_rank"], r["rank"], t)
+        if config.draft is not None:
+            draft_board(r, rng, config)
 
     rank_within(recruits, "position", "pos_rank")
     return recruits
+
+
+def draft_board(r: dict, rng, config: SportConfig) -> None:
+    """Draft sports: projected round and pick from the big-board rank, plus his high
+    school recruiting stars as background. His high school ranking = today's ranking,
+    shifted by development type (early bloomers were rated higher back then, late
+    bloomers lower) plus noise. International players weren't US recruits: no stars."""
+    d, t = config.draft, config.talent
+    r["projection"] = next(b.label for b in d.projection if r["rank"] <= b.last_rank)
+    r["projected_pick"] = r["rank"] if r["rank"] <= d.picks else None
+    if r.get("international"):
+        r["stars"], r["rating"] = None, None
+        return
+    hs_t = scout_index(r, config) + d.high_school.shift.get(r.get("development", ""), 0.0)
+    hs_t += rng.normal(0, d.high_school.noise)
+    hs_rank = max(1, math.ceil(t.pool_size * norm.sf(hs_t)))
+    band, _ = star_band(hs_rank, t.stars)
+    r["stars"] = band.stars
+    r["rating"] = rating_for(hs_rank, t.stars)
+    r["hs_rank"] = hs_rank                     # working value, not in the CSV
 
 
 def ethnicity_mix(r: dict, config: SportConfig) -> dict:
@@ -353,6 +376,43 @@ def backgrounds(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
         r["high_school"] = high_school(r, rng, config, prep_picker, pattern_picker)
 
     rank_within(recruits, "origin", "state_rank")
+    return recruits
+
+
+def careers(recruits: list[dict], rng, config: SportConfig) -> list[dict]:
+    """Where each player plays now, his class year and age.
+    Draft sports (teams settings): a path by where he's from (college, overseas club,
+    NBL Next Stars, Overtime Elite, G League), then a team. Better prospects land at
+    bigger programs; top prospects are mostly freshmen (one-and-done); late bloomers
+    stay in school longer. Other sports: just an age.
+    Runs after names, so adding it didn't change any other column."""
+    if config.teams is None:
+        if config.ages:
+            picker = WeightedPicker(config.ages)
+            for r in recruits:
+                r["age"] = int(picker.pick(rng))
+        return recruits
+    tm = config.teams
+    path_pickers = {where: WeightedPicker(paths) for where, paths in tm.paths.items()}
+    pro_age = WeightedPicker(tm.pro_ages)
+    for r in recruits:
+        where = "US" if not r["international"] else (r["origin"] if r["origin"] in tm.paths else "abroad")
+        path = path_pickers[where].pick(rng)
+        idx = scout_index(r, config)
+        if path == COLLEGE:
+            tier = WeightedPicker({n: c.share * math.exp(c.tilt * idx) for n, c in tm.college_tiers.items()}).pick(rng)
+            teams = tm.college_tiers[tier].teams
+            nudge = tm.development_nudge.get(r.get("development", ""), {})
+            year = WeightedPicker({y: c.share * math.exp(c.tilt * idx) * nudge.get(y, 1.0)
+                                   for y, c in tm.class_years.items()}).pick(rng)
+            older = WeightedPicker({0: 0.70, 1: 0.25, -1: 0.05}).pick(rng)
+            r["team"], r["level"], r["class_year"] = teams[int(rng.integers(len(teams)))], COLLEGE, year
+            r["age"] = tm.college_age[year] + older
+        else:
+            clubs = (tm.overseas_clubs.get(r["origin"]) or tm.overseas_clubs["other"]) if path == OVERSEAS \
+                else tm.pro_teams[path]
+            r["team"], r["level"], r["class_year"] = clubs[int(rng.integers(len(clubs)))], path, ""
+            r["age"] = int(pro_age.pick(rng))
     return recruits
 
 

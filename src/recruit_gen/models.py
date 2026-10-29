@@ -24,15 +24,21 @@ Rating = Annotated[int, Field(ge=1, le=99)]
 class Recruit(BaseModel):
     """The contract every finished recruit must meet.
     Field order = CSV column order (the 2K ratings get flattened onto the end)."""
-    rank: int = Field(ge=1)              # national rank (scouted)
-    stars: int = Field(ge=1, le=5)
-    rating: float = Field(ge=0, le=101)  # 247-style rating, e.g. 98.6
+    rank: int = Field(ge=1)              # national rank (scouted); for draft sports, the big board
+    projection: str = ""                 # draft sports: Lottery / 1st round / 2nd round / Undrafted
+    projected_pick: Optional[int] = Field(default=None, ge=1)   # draft sports: projected pick number
+    stars: Optional[int] = Field(default=None, ge=1, le=5)      # draft sports: high school stars (background)
+    rating: Optional[float] = Field(default=None, ge=0, le=101) # 247-style rating, e.g. 98.6
     first_name: str = Field(min_length=1)   # the name he goes by (CJ, Trey, DeAndre...)
     last_name: str = Field(min_length=1)
     suffix: str                          # "", Jr., II, III, IV
     position: str
     secondary_position: str              # "" if none
     pos_rank: int = Field(ge=1)          # rank among this class's players at his position
+    team: str = ""                       # where he plays now (draft sports): Duke, Real Madrid...
+    level: str = ""                      # College / Overseas pro / NBL Next Stars / Overtime Elite / G League
+    class_year: str = ""                 # college players: Fr / So / Jr / Sr
+    age: Optional[int] = Field(default=None, ge=14, le=30)
     archetype: str
     ovr: Rating                          # current overall
     potential: Rating                    # "Potential": his ceiling
@@ -413,6 +419,78 @@ class ChecksConfig(BaseModel):
     wingspan_vs_height: Optional[Range] = None
 
 
+# ---- draft prospects (Piece 11) ---------------------------------------------------
+class ProjectionBand(BaseModel):
+    label: str
+    last_rank: int = Field(ge=1)
+
+
+class HighSchoolHistory(BaseModel):
+    shift: dict[str, float] = {}         # development type -> how his old HS ranking compared to now
+    noise: float = Field(ge=0)
+
+
+class DraftConfig(BaseModel):
+    """Makes a sport's class a draft class: rank = big board, stars = high school background."""
+    default_top: bool = True
+    picks: int = Field(ge=1)
+    projection: list[ProjectionBand] = Field(min_length=1)
+    high_school: HighSchoolHistory
+
+    @model_validator(mode="after")
+    def bands_in_order(self):
+        last = [b.last_rank for b in self.projection]
+        if last != sorted(last) or len(set(last)) != len(last):
+            raise ValueError(f"projection bands must go best to worst with growing last_rank, got {last}")
+        return self
+
+
+class ClassYear(BaseModel):
+    share: Weight
+    tilt: float = 0.0
+
+
+class CollegeTier(BaseModel):
+    share: Weight
+    tilt: float = 0.0
+    teams: list[str] = Field(min_length=1)
+
+
+COLLEGE, OVERSEAS = "College", "Overseas pro"
+
+
+class TeamsConfig(BaseModel):
+    """Where draft prospects play now."""
+    paths: dict[str, dict[str, Weight]] = Field(min_length=1)   # "US" / country / "abroad" -> {path: weight}
+    college_tiers: dict[str, CollegeTier] = Field(min_length=1)
+    class_years: dict[str, ClassYear] = Field(min_length=1)
+    development_nudge: dict[str, dict[str, Annotated[float, Field(ge=0)]]] = {}
+    college_age: dict[str, int] = Field(min_length=1)
+    pro_ages: dict[int, Weight] = Field(min_length=1)
+    pro_teams: dict[str, list[str]] = {}                 # path -> teams
+    overseas_clubs: dict[str, list[str]] = {}            # country (or "other") -> clubs
+
+    @model_validator(mode="after")
+    def everything_has_a_home(self):
+        problems = []
+        for where, paths in self.paths.items():
+            for path in paths:
+                if path not in (COLLEGE, OVERSEAS) and path not in self.pro_teams:
+                    problems.append(f"path '{path}' (in {where}) has no teams in pro_teams")
+                if path == OVERSEAS and "other" not in self.overseas_clubs:
+                    problems.append("overseas_clubs needs an 'other' list")
+        if "US" not in self.paths or "abroad" not in self.paths:
+            problems.append("paths needs both 'US' and 'abroad'")
+        missing_age = [y for y in self.class_years if y not in self.college_age]
+        if missing_age:
+            problems.append(f"college_age is missing {missing_age}")
+        for dev, nudges in self.development_nudge.items():
+            problems += [f"development_nudge {dev} year '{y}'" for y in nudges if y not in self.class_years]
+        if problems:
+            raise ValueError("; ".join(problems))
+        return self
+
+
 class SportConfig(BaseModel):
     sport: str
     game: str = ""                       # which video game this sport's settings are built for
@@ -430,6 +508,9 @@ class SportConfig(BaseModel):
     position_groups: dict[str, list[str]] = {}   # words you can type for --position (guard, big...)
     dev_traits: Optional[DevTraitsConfig] = None
     forty: Optional[FortyConfig] = None
+    draft: Optional[DraftConfig] = None          # draft sports (NBA prospects)
+    teams: Optional[TeamsConfig] = None          # where draft prospects play now
+    ages: Optional[dict[int, Weight]] = None     # ages for sports without teams (HS recruits)
 
     @model_validator(mode="after")
     def rating_names_line_up(self):
@@ -447,6 +528,17 @@ class SportConfig(BaseModel):
                 problems += [f"{pos} origin_override '{x}'" for x in ov.countries if x not in self.places.countries]
         if self.forty is not None and self.attributes is not None and self.forty.rating not in self.attributes.order:
             problems.append(f"forty rating '{self.forty.rating}'")
+        trajectories = set(self.development.trajectories) if self.development else set()
+        if self.draft is not None:
+            if self.draft.projection[-1].last_rank < self.talent.pool_size:
+                problems.append(f"draft projection must cover the whole pool (last_rank >= {self.talent.pool_size})")
+            problems += [f"draft high_school shift '{x}'" for x in self.draft.high_school.shift if x not in trajectories]
+        if self.teams is not None:
+            problems += [f"teams paths country '{x}'" for x in self.teams.paths
+                         if x not in ("US", "abroad") and x not in self.places.countries]
+            problems += [f"teams overseas_clubs country '{x}'" for x in self.teams.overseas_clubs
+                         if x != "other" and x not in self.places.countries]
+            problems += [f"teams development_nudge '{x}'" for x in self.teams.development_nudge if x not in trajectories]
         for pos, p in self.positions.items():
             problems += [f"{pos} secondary '{x}'" for x in p.secondary if x not in known_pos]
             problems += [f"{pos} archetype '{x}'" for x in p.archetypes if x not in self.archetypes]

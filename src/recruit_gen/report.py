@@ -1,7 +1,8 @@
 """Class check vs. real-life targets (Piece 10).
 
 After a class is built, compare what came out to what the settings say should come
-out: ethnicity, positions, stars and international share. Random classes never
+out: ethnicity, positions, stars (or projected round, for draft classes) and
+international share. Random classes never
 match targets exactly, so a difference only gets a "!" when it's bigger than
 chance explains (more than 3 standard errors AND more than 3 percentage points).
 That's the same idea as a data-quality check on any pipeline: did the output
@@ -69,20 +70,40 @@ def star_targets(config: SportConfig) -> dict[int, float]:
     return out
 
 
+def projection_targets(config: SportConfig) -> dict[str, float]:
+    """Draft sports, realistic mix: each projected round's share of the ranked pool."""
+    first, out = 1, {}
+    for band in config.draft.projection:
+        last = min(band.last_rank, config.talent.pool_size)
+        out[band.label] = max(0, last - first + 1) / config.talent.pool_size
+        first = band.last_rank + 1
+    return out
+
+
 def class_report(recruits: list[dict], config: SportConfig, top: bool, custom: bool) -> dict[str, list[Line]]:
     n = len(recruits)
     share = lambda key, value: sum(r[key] == value for r in recruits) / n   # noqa: E731
     with_targets = not custom
     pos_t = position_targets([r["rank"] for r in recruits], config)
     eth_t, intl_t = background_targets(pos_t, config)
-    star_t = star_targets(config) if not top else {}
-    report = {
+    draft = config.draft is not None
+    star_t = star_targets(config) if not top and not draft else {}
+    report = {}
+    if draft:
+        proj_t = projection_targets(config) if not top else {}
+        report["Projection"] = [Line(b.label, share("projection", b.label),
+                                     proj_t.get(b.label) if with_targets else None)
+                                for b in config.draft.projection]
+    report |= {
         "Ethnicity": [Line(e, share("ethnicity", e), eth_t.get(e) if with_targets else None)
                       for e in ETHNICITIES if share("ethnicity", e) > 0 or eth_t.get(e, 0) >= 0.01],
         "Positions": [Line(p, share("position", p), pos_t.get(p) if with_targets else None)
                       for p in config.positions],
-        "Stars": [Line(f"{s}*", share("stars", s), star_t.get(s) if with_targets else None)
-                  for s in sorted({b.stars for b in config.talent.stars}, reverse=True)],
+        # Draft sports: stars are high school background, so there's no target to hit.
+        ("HS stars" if draft else "Stars"): [
+            Line(f"{s}*", share("stars", s), star_t.get(s) if with_targets else None)
+            for s in sorted({b.stars for b in config.talent.stars}, reverse=True)
+            if not draft or share("stars", s) > 0],
         "International": [Line("share", sum(r["origin"] in config.places.countries for r in recruits) / n,
                                intl_t if with_targets else None)],
     }

@@ -87,7 +87,9 @@ def test_talent_pyramid_shape(basketball):
 
 # ---- stars and ratings ---------------------------------------------------------
 def test_full_pool_has_exactly_the_configured_stars(basketball):
-    recruits = run_pipeline(basketball.talent.pool_size, seed=5, config=basketball)
+    # Stars come straight from rank in recruit sports. Basketball is a draft class (its
+    # stars are high school background), so test the rule on a copy without the draft.
+    recruits = run_pipeline(basketball.talent.pool_size, seed=5, config=basketball.model_copy(update={"draft": None}))
     counts = Counter(r["stars"] for r in recruits)
     first = 0
     for band in basketball.talent.stars:
